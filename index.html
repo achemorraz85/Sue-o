@@ -3,99 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Driver Alert AI - Auto-Calibrado</title>
+    <title>Driver Alert AI - Calibración</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
 
     <style>
         :root { --bg: #020617; --card: #1e293b; --accent: #3b82f6; --danger: #dc2626; --success: #10b981; }
-        body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; height: 100vh; }
-        .container { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 15px; gap: 10px; }
-        .video-wrapper { width: 100%; max-width: 400px; border-radius: 20px; overflow: hidden; border: 3px solid #334155; position: relative; }
-        video { width: 100%; display: block; transform: scaleX(-1); background: #000; }
-        #status-indicator { width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; background: var(--card); }
-        .alerta-critica { background-color: var(--danger) !important; animation: pulse 0.4s infinite; }
-        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.03);} 100% {transform: scale(1);} }
+        body { margin: 0; padding: 0; font-family: sans-serif; background: var(--bg); color: white; text-align: center; }
+        .container { padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        video { width: 100%; max-width: 400px; border-radius: 20px; transform: scaleX(-1); background: #000; border: 2px solid #334155; }
         
-        .calibration-panel { width: 100%; max-width: 400px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-        .cal-btn { padding: 10px 5px; font-size: 0.7rem; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer; }
-        .cal-btn.active { background: var(--success); }
-        
-        #mainBtn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; width: 100%; max-width: 400px; }
-        .val-info { font-size: 0.8rem; color: #94a3b8; }
+        #status-box { width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; background: var(--card); font-weight: bold; margin: 10px 0; }
+        .alerta { background: var(--danger) !important; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
+
+        .cal-panel { display: flex; gap: 10px; margin-bottom: 10px; width: 100%; max-width: 400px; }
+        .cal-btn { flex: 1; padding: 12px 5px; border-radius: 8px; border: none; background: #334155; color: white; font-size: 0.7rem; font-weight: bold; }
+        .cal-btn.done { background: var(--success); }
+
+        #main-btn { width: 100%; max-width: 400px; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: white; font-weight: bold; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h3 style="margin: 5px 0;">Asistente de Viaje AI 🚗</h3>
+    <h3>Driver Alert AI 🚗</h3>
+    <video id="input_video" playsinline></video>
     
-    <div class="video-wrapper">
-        <video id="input_video" playsinline></video>
+    <div id="val-display" style="font-family: monospace; color: #94a3b8;">Apertura: 0.0000</div>
+
+    <div class="cal-panel">
+        <button class="cal-btn" id="btn-open" onclick="setCal('open')">1. OJOS<br>ABIERTOS</button>
+        <button class="cal-btn" id="btn-closed" onclick="setCal('closed')">2. OJOS<br>CERRADOS</button>
     </div>
 
-    <div class="val-info">Valor actual: <span id="current-val">0.000</span></div>
-
-    <div class="calibration-panel" id="cal-panel">
-        <button class="cal-btn" onclick="calibrate('open')">1. OJOS<br>ABIERTOS</button>
-        <button class="cal-btn" onclick="calibrate('tired')">2. OJOS<br>CANSADOS</button>
-        <button class="cal-btn" onclick="calibrate('closed')">3. OJOS<br>CERRADOS</button>
-    </div>
-
-    <div id="status-indicator">Configura los 3 pasos arriba</div>
-
-    <button id="mainBtn">INICIAR CÁMARA</button>
+    <div id="status-box">Inicia la cámara primero</div>
+    <button id="main-btn" onclick="startApp()">INICIAR CÁMARA</button>
 </div>
 
-<audio id="alarmAudio" loop src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="alarm" loop src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
 const videoElement = document.getElementById('input_video');
-const statusBox = document.getElementById('status-indicator');
-const currentValSpan = document.getElementById('current-val');
-const alarm = document.getElementById('alarmAudio');
-const mainBtn = document.getElementById('mainBtn');
+const statusBox = document.getElementById('status-box');
+const valDisplay = document.getElementById('val-display');
+const alarm = document.getElementById('alarm');
 
-let currentAperture = 0;
-let thresholds = { open: 0, tired: 0, closed: 0 };
-let isRunning = false;
-let cerradoDesde = 0;
+let aperture = 0;
+let cal = { open: 0, closed: 0 };
+let active = false;
+let closedStart = 0;
+let finalThreshold = 0;
 
-// Función para capturar el valor de referencia
-function calibrate(type) {
-    thresholds[type] = currentAperture;
-    event.target.classList.add('active');
+function setCal(type) {
+    if (aperture === 0) return alert("Espera a que la cámara detecte tu rostro");
+    cal[type] = aperture;
+    document.getElementById('btn-' + type).classList.add('done');
     
-    if(thresholds.open && thresholds.closed) {
-        // El umbral de alerta es el promedio entre "cansado" y "cerrado"
-        // Si no se hizo "cansado", se usa el punto medio entre abierto y cerrado
-        const baseMin = thresholds.tired || (thresholds.open + thresholds.closed) / 2;
-        window.umbralFinal = (baseMin + thresholds.closed) / 2;
-        statusBox.innerText = "¡Calibrado! Pulsa Iniciar";
+    if (cal.open && cal.closed) {
+        // Calculamos el punto de alerta (un poco más arriba del valor cerrado)
+        finalThreshold = cal.closed + (cal.open - cal.closed) * 0.25;
+        statusBox.innerText = "¡Calibrado! Vigilancia activada.";
         statusBox.style.color = "#10b981";
     }
 }
 
 function onResults(results) {
-    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) return;
+    if (!results.multiFaceLandmarks || !results.multiFaceLandmarks[0]) {
+        valDisplay.innerText = "Buscando rostro...";
+        return;
+    }
 
-    const landmarks = results.multiFaceLandmarks[0];
-    currentAperture = landmarks[145].y - landmarks[159].y;
-    currentValSpan.innerText = currentAperture.toFixed(4);
+    const pts = results.multiFaceLandmarks[0];
+    // Cálculo simplificado para evitar NaN
+    aperture = pts[145].y - pts[159].y;
+    valDisplay.innerText = "Apertura: " + aperture.toFixed(4);
 
-    if (isRunning && window.umbralFinal) {
-        if (currentAperture < window.umbralFinal) {
-            if (cerradoDesde === 0) cerradoDesde = Date.now();
-            if (Date.now() - cerradoDesde > 1200) {
-                statusBox.innerText = "¡PELIGRO: DESPIERTE!";
-                statusBox.classList.add('alerta-critica');
-                if (alarm.paused) alarm.play();
+    if (active && finalThreshold > 0) {
+        if (aperture < finalThreshold) {
+            if (closedStart === 0) closedStart = Date.now();
+            if (Date.now() - closedStart > 1200) {
+                statusBox.innerText = "¡DESPIERTE!";
+                statusBox.classList.add('alerta');
+                alarm.play().catch(() => {});
             }
         } else {
-            cerradoDesde = 0;
+            closedStart = 0;
             statusBox.innerText = "Conductor Vigilado ✅";
-            statusBox.classList.remove('alerta-critica');
+            statusBox.classList.remove('alerta');
             alarm.pause();
         }
     }
@@ -104,29 +100,19 @@ function onResults(results) {
 const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
 });
-
 faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
 faceMesh.onResults(onResults);
 
-mainBtn.onclick = async () => {
-    if(!isRunning) {
-        const camera = new Camera(videoElement, {
-            onFrame: async () => { await faceMesh.send({image: videoElement}); },
-            width: 640, height: 480
-        });
-        await camera.start();
-        isRunning = true;
-        mainBtn.innerText = "ACTIVAR VIGILANCIA";
-        statusBox.innerText = "Sigue los pasos 1, 2 y 3";
-    } else {
-        if(!window.umbralFinal) {
-            alert("Primero calibra los 3 estados (Abierto, Cansado, Cerrado)");
-            return;
-        }
-        statusBox.innerText = "Vigilancia en curso...";
-        mainBtn.style.display = 'none';
-    }
-};
+async function startApp() {
+    const camera = new Camera(videoElement, {
+        onFrame: async () => { await faceMesh.send({image: videoElement}); },
+        width: 640, height: 480
+    });
+    await camera.start();
+    active = true;
+    document.getElementById('main-btn').style.display = 'none';
+    statusBox.innerText = "Sigue los pasos 1 y 2 arriba";
+}
 </script>
 </body>
 </html>
