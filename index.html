@@ -1,121 +1,1109 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Road Assistant</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-    <style>
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
-        .ui { position: absolute; z-index: 10; width: 100%; text-align: center; padding-top: 10px; }
-        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-        .alert-zone { 
-            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
-            width: 80%; height: 150px; border: 2px dashed rgba(255,255,255,0.3);
-            pointer-events: none;
-        }
-        #dist-info { background: rgba(0,0,0,0.7); padding: 10px; border-radius: 10px; display: inline-block; }
-        .danger { background: #dc2626 !important; animation: blink 0.4s infinite; }
-        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ADAS Guard — Sistema de Asistencia al Conductor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --safe: #00e676;
+    --warn: #ffea00;
+    --danger: #ff1744;
+    --critical: #ff6d00;
+    --bg: #050a0f;
+    --panel: rgba(5, 15, 25, 0.88);
+    --border: rgba(0, 230, 118, 0.25);
+    --text: #c8f0d8;
+    --dim: rgba(200, 240, 216, 0.45);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    height: 100dvh;
+    width: 100vw;
+    user-select: none;
+  }
+
+  #camera-feed {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  #overlay-canvas {
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* HUD principal */
+  #hud {
+    position: fixed; inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Panel de velocidad / distancia izquierda */
+  #panel-left {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px;
+    pointer-events: all;
+  }
+
+  .metric-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 90px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--safe);
+    transition: background 0.3s;
+  }
+
+  .metric-box.warn::before { background: var(--warn); }
+  .metric-box.danger::before { background: var(--danger); }
+
+  .metric-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 2px;
+  }
+
+  .metric-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 26px;
+    line-height: 1;
+    color: var(--safe);
+    transition: color 0.3s;
+  }
+
+  .metric-box.warn .metric-value { color: var(--warn); }
+  .metric-box.danger .metric-value { color: var(--danger); }
+
+  .metric-unit {
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 1px;
+  }
+
+  /* Panel superior */
+  #panel-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(5,10,15,0.9) 0%, transparent 100%);
+  }
+
+  .logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--safe);
+  }
+
+  .logo span { color: var(--dim); }
+
+  .status-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--safe);
+    box-shadow: 0 0 6px var(--safe);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .status-text {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  /* Alertas centrales */
+  #alert-center {
+    position: absolute;
+    top: 18%;
+    left: 50%; transform: translateX(-50%);
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .alert-badge {
+    display: inline-block;
+    padding: 8px 22px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 4px 0;
+    animation: alert-flash 0.5s ease-in-out infinite alternate;
+    backdrop-filter: blur(8px);
+  }
+
+  .alert-badge.safe {
+    background: rgba(0, 230, 118, 0.15);
+    border: 1px solid var(--safe);
+    color: var(--safe);
+    animation: none;
+  }
+
+  .alert-badge.warn {
+    background: rgba(255, 234, 0, 0.18);
+    border: 1px solid var(--warn);
+    color: var(--warn);
+  }
+
+  .alert-badge.danger {
+    background: rgba(255, 23, 68, 0.25);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+
+  .alert-badge.invasion {
+    background: rgba(255, 109, 0, 0.25);
+    border: 1px solid var(--critical);
+    color: var(--critical);
+  }
+
+  @keyframes alert-flash {
+    from { opacity: 1; box-shadow: 0 0 12px currentColor; }
+    to   { opacity: 0.6; box-shadow: none; }
+  }
+
+  /* Panel derecho — detección lateral */
+  #panel-right {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px;
+    align-items: flex-end;
+    pointer-events: all;
+  }
+
+  .lane-indicator {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 88px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lane-indicator::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--safe);
+    transition: background 0.3s;
+  }
+
+  .lane-indicator.invaded::before {
+    background: var(--critical);
+    box-shadow: 0 0 8px var(--critical);
+  }
+
+  .lane-icon {
+    font-size: 22px; margin-bottom: 2px;
+  }
+
+  .lane-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .lane-state {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-top: 2px;
+    color: var(--safe);
+    transition: color 0.3s;
+  }
+
+  .lane-indicator.invaded .lane-state { color: var(--critical); }
+
+  /* Panel inferior */
+  #panel-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    background: linear-gradient(to top, rgba(5,10,15,0.9) 0%, transparent 100%);
+    pointer-events: all;
+  }
+
+  .control-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+
+  .control-btn:active {
+    background: rgba(0,230,118,0.15);
+    border-color: var(--safe);
+    color: var(--safe);
+  }
+
+  .control-btn.active {
+    border-color: var(--safe);
+    color: var(--safe);
+    background: rgba(0,230,118,0.1);
+  }
+
+  .control-btn.danger-btn {
+    border-color: rgba(255,23,68,0.4);
+    color: rgba(255,23,68,0.8);
+  }
+
+  /* Sensitivity control */
+  .sensitivity-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+
+  .sens-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .sens-slider {
+    -webkit-appearance: none;
+    width: 90px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .sens-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--safe);
+    cursor: pointer;
+  }
+
+  /* Overlay de peligro en pantalla completa */
+  #danger-overlay {
+    position: fixed; inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border: 4px solid transparent;
+  }
+
+  #danger-overlay.active {
+    opacity: 1;
+    border-color: var(--danger);
+    box-shadow: inset 0 0 60px rgba(255,23,68,0.35);
+    animation: danger-pulse 0.4s ease-in-out infinite alternate;
+  }
+
+  #danger-overlay.invasion-active {
+    opacity: 1;
+    border-color: var(--critical);
+    box-shadow: inset 0 0 60px rgba(255,109,0,0.3);
+    animation: invasion-pulse 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes danger-pulse {
+    from { box-shadow: inset 0 0 80px rgba(255,23,68,0.5); }
+    to   { box-shadow: inset 0 0 20px rgba(255,23,68,0.15); }
+  }
+
+  @keyframes invasion-pulse {
+    from { box-shadow: inset 0 0 60px rgba(255,109,0,0.45); }
+    to   { box-shadow: inset 0 0 15px rgba(255,109,0,0.1); }
+  }
+
+  /* Startup screen */
+  #startup {
+    position: fixed; inset: 0;
+    z-index: 10;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px;
+    transition: opacity 0.6s;
+  }
+
+  #startup.hidden { opacity: 0; pointer-events: none; }
+
+  .startup-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 32px;
+    letter-spacing: 6px;
+    color: var(--safe);
+    text-shadow: 0 0 30px rgba(0,230,118,0.5);
+  }
+
+  .startup-sub {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .startup-info {
+    font-size: 12px;
+    color: var(--dim);
+    text-align: center;
+    line-height: 1.7;
+    max-width: 300px;
+    letter-spacing: 0.5px;
+  }
+
+  .start-btn {
+    background: transparent;
+    border: 1px solid var(--safe);
+    color: var(--safe);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  .start-btn:hover, .start-btn:active {
+    background: rgba(0,230,118,0.12);
+    box-shadow: 0 0 20px rgba(0,230,118,0.3);
+  }
+
+  .disclaimer {
+    font-size: 10px;
+    color: rgba(200,240,216,0.3);
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  /* Log de eventos */
+  #event-log {
+    position: absolute;
+    bottom: 65px; left: 12px;
+    display: flex; flex-direction: column-reverse; gap: 4px;
+    max-height: 80px; overflow: hidden;
+    pointer-events: none;
+  }
+
+  .log-entry {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: rgba(5,15,25,0.7);
+    border-left: 2px solid var(--border);
+    color: var(--dim);
+    border-radius: 0 4px 4px 0;
+    animation: log-in 0.3s ease-out;
+    white-space: nowrap;
+  }
+
+  @keyframes log-in {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* No camera fallback */
+  #no-camera {
+    display: none;
+    position: fixed; inset: 0; z-index: 5;
+    background: var(--bg);
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    text-align: center; padding: 30px;
+  }
+
+  #no-camera.show { display: flex; }
+  #no-camera h2 { color: var(--warn); font-size: 18px; letter-spacing: 2px; }
+  #no-camera p { color: var(--dim); font-size: 13px; line-height: 1.6; max-width: 300px; }
+</style>
 </head>
 <body>
 
-<div class="ui">
-    <div id="dist-info">
-        <span id="status">Iniciando Radar AI...</span><br>
-        <small id="detail">Alinea el celular hacia la carretera</small>
-    </div>
+<!-- Startup -->
+<div id="startup">
+  <div class="startup-logo">ADAS GUARD</div>
+  <div class="startup-sub">Sistema de Asistencia al Conductor</div>
+  <div class="startup-info">
+    Detección de distancia frontal y<br>
+    invasión de carril en tiempo real.<br>
+    Requiere acceso a la cámara trasera.
+  </div>
+  <button class="start-btn" id="start-btn">Iniciar Sistema</button>
+  <div class="disclaimer">
+    ⚠ Este sistema es de asistencia. El conductor es responsable en todo momento de conducir de forma segura. No reemplaza la atención al volante.
+  </div>
 </div>
 
-<div class="alert-zone" id="lane-guide"></div>
-<video id="video" autoplay playsinline muted style="display:none;"></video>
-<canvas id="canvas"></canvas>
+<!-- No camera fallback -->
+<div id="no-camera">
+  <h2>⚠ CÁMARA NO DISPONIBLE</h2>
+  <p>No se pudo acceder a la cámara. Verifica los permisos del navegador e intenta de nuevo.</p>
+  <button class="start-btn" id="retry-btn">Reintentar</button>
+</div>
 
-<audio id="warnSnd" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<!-- Camera -->
+<video id="camera-feed" autoplay muted playsinline></video>
+
+<!-- Canvas overlay (detections drawn here) -->
+<canvas id="overlay-canvas"></canvas>
+
+<!-- Danger overlay border -->
+<div id="danger-overlay"></div>
+
+<!-- HUD -->
+<div id="hud">
+
+  <!-- Top bar -->
+  <div id="panel-top">
+    <div class="logo">ADAS<span>guard</span></div>
+    <div class="status-row">
+      <div class="status-dot" id="status-dot"></div>
+      <div class="status-text" id="status-text">Analizando</div>
+    </div>
+    <div class="logo" id="clock">--:--</div>
+  </div>
+
+  <!-- Alert center -->
+  <div id="alert-center">
+    <div class="alert-badge safe" id="main-alert">DISTANCIA SEGURA</div>
+  </div>
+
+  <!-- Left panel — metrics -->
+  <div id="panel-left">
+    <div class="metric-box" id="box-distance">
+      <div class="metric-label">Distancia</div>
+      <div class="metric-value" id="val-distance">--</div>
+      <div class="metric-unit">metros est.</div>
+    </div>
+    <div class="metric-box" id="box-ttc">
+      <div class="metric-label">TTC</div>
+      <div class="metric-value" id="val-ttc">--</div>
+      <div class="metric-unit">segundos</div>
+    </div>
+  </div>
+
+  <!-- Right panel — lane -->
+  <div id="panel-right">
+    <div class="lane-indicator" id="lane-left">
+      <div class="lane-icon">◁</div>
+      <div class="lane-label">Carril Izq</div>
+      <div class="lane-state" id="lane-left-state">Libre</div>
+    </div>
+    <div class="lane-indicator" id="lane-right">
+      <div class="lane-icon">▷</div>
+      <div class="lane-label">Carril Der</div>
+      <div class="lane-state" id="lane-right-state">Libre</div>
+    </div>
+  </div>
+
+  <!-- Event log -->
+  <div id="event-log"></div>
+
+  <!-- Bottom bar -->
+  <div id="panel-bottom">
+    <button class="control-btn" id="btn-mute">🔊 Audio</button>
+    <div class="sensitivity-wrap">
+      <div class="sens-label">Sensibilidad</div>
+      <input type="range" class="sens-slider" id="sensitivity" min="1" max="10" value="6">
+    </div>
+    <button class="control-btn active" id="btn-lanes">Carriles ON</button>
+  </div>
+
+</div>
 
 <script>
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const status = document.getElementById('status');
-const warnSnd = document.getElementById('warnSnd');
+// ============================================================
+// ADAS GUARD — Core Engine
+// ============================================================
 
-let model;
-let lastAlert = 0;
+const video    = document.getElementById('camera-feed');
+const canvas   = document.getElementById('overlay-canvas');
+const ctx      = canvas.getContext('2d');
 
-async function setup() {
-    status.innerText = "Cargando Modelos de Tráfico...";
-    model = await cocoSsd.load();
-    
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Cámara trasera
-        audio: false 
-    });
-    video.srcObject = stream;
-    
-    video.onloadedmetadata = () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        detectFrame();
-    };
+// UI refs
+const startBtn       = document.getElementById('start-btn');
+const retryBtn       = document.getElementById('retry-btn');
+const startup        = document.getElementById('startup');
+const noCamera       = document.getElementById('no-camera');
+const mainAlert      = document.getElementById('main-alert');
+const valDistance    = document.getElementById('val-distance');
+const valTTC         = document.getElementById('val-ttc');
+const boxDistance    = document.getElementById('box-distance');
+const boxTTC         = document.getElementById('box-ttc');
+const dangerOverlay  = document.getElementById('danger-overlay');
+const laneLeft       = document.getElementById('lane-left');
+const laneRight      = document.getElementById('lane-right');
+const laneLeftState  = document.getElementById('lane-left-state');
+const laneRightState = document.getElementById('lane-right-state');
+const statusDot      = document.getElementById('status-dot');
+const statusText     = document.getElementById('status-text');
+const eventLog       = document.getElementById('event-log');
+const btnMute        = document.getElementById('btn-mute');
+const btnLanes       = document.getElementById('btn-lanes');
+const sensitivitySlider = document.getElementById('sensitivity');
+const clockEl        = document.getElementById('clock');
+
+// State
+let muted         = false;
+let lanesEnabled  = true;
+let running       = false;
+let sensitivity   = 6;
+let lastAudioTime = 0;
+let audioCtx      = null;
+
+// Detection state (simulated from real optical flow)
+const state = {
+  frontDistance: 99,    // meters estimated
+  ttc: 99,              // time to collision seconds
+  leftInvaded: false,
+  rightInvaded: false,
+  alertLevel: 'safe',   // safe | warn | danger | critical
+  frameCount: 0,
+};
+
+// Prev frame for optical flow
+let prevFrame = null;
+let prevFrameData = null;
+
+// History for smoothing
+const distHistory  = [];
+const ttcHistory   = [];
+const leftHistory  = [];
+const rightHistory = [];
+const HIST = 6;
+
+function smooth(arr, val) {
+  arr.push(val);
+  if (arr.length > HIST) arr.shift();
+  return arr.reduce((a,b) => a+b, 0) / arr.length;
 }
 
-async function detectFrame() {
-    const predictions = await model.detect(video);
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0);
+// ---- Audio engine ----
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
 
-    let dangerDetected = false;
+function beep(freq = 880, dur = 0.12, vol = 0.35, type = 'sine') {
+  if (muted) return;
+  const now = Date.now();
+  if (now - lastAudioTime < 180) return;
+  lastAudioTime = now;
+  ensureAudio();
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.frequency.value = freq;
+  osc.type = type;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
 
-    predictions.forEach(pred => {
-        // Solo nos importan vehículos
-        if (['car', 'truck', 'bus', 'motorcycle'].includes(pred.class)) {
-            const [x, y, width, height] = pred.bbox;
-            
-            // Dibujar caja del vehículo
-            ctx.strokeStyle = "#00ff00";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(x, y, width, height);
+function alarm(level) {
+  if (level === 'warn')     beep(660, 0.15, 0.3, 'sine');
+  if (level === 'danger')   beep(880, 0.2,  0.5, 'square');
+  if (level === 'critical') beep(1100, 0.25, 0.7, 'sawtooth');
+  if (level === 'invasion') beep(740, 0.3,  0.55, 'triangle');
+}
 
-            // "Cálculo" de distancia basado en el ancho ocupado en pantalla
-            // Si el auto ocupa más del 40% del ancho, está muy cerca
-            const sizeRatio = width / canvas.width;
-            
-            // Invasión de carril (si el objeto está muy a la izquierda o derecha)
-            const centerX = x + (width / 2);
-            const isLeftCutIn = centerX < (canvas.width * 0.3); // Zona izquierda
+// ---- Event log ----
+function logEvent(msg, color = '') {
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  if (color) el.style.borderLeftColor = color;
+  const t = new Date().toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.textContent = `[${t}] ${msg}`;
+  eventLog.prepend(el);
+  setTimeout(() => el.remove(), 8000);
+}
 
-            if (sizeRatio > 0.45) {
-                ctx.strokeStyle = "#ff0000";
-                ctx.strokeRect(x, y, width, height);
-                status.innerText = "⚠️ ¡DISTANCIA CRÍTICA!";
-                dangerDetected = true;
-            } else if (isLeftCutIn && sizeRatio > 0.2) {
-                status.innerText = "🚗 VEHÍCULO INVADIENDO IZQ";
-                ctx.strokeStyle = "#fbbf24";
-                dangerDetected = true;
-            }
-        }
+// ---- Clock ----
+setInterval(() => {
+  const now = new Date();
+  clockEl.textContent = now.toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+}, 1000);
+
+// ---- Camera init ----
+async function startCamera() {
+  try {
+    const constraints = {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+    video.play();
+
+    video.addEventListener('loadedmetadata', () => {
+      canvas.width  = video.videoWidth  || window.innerWidth;
+      canvas.height = video.videoHeight || window.innerHeight;
+      startup.classList.add('hidden');
+      running = true;
+      statusText.textContent = 'ACTIVO';
+      logEvent('Sistema iniciado', 'var(--safe)');
+      requestAnimationFrame(processFrame);
     });
+  } catch (e) {
+    console.error(e);
+    startup.classList.add('hidden');
+    noCamera.classList.add('show');
+  }
+}
 
-    if (dangerDetected) {
-        document.body.style.backgroundColor = "#450a0a";
-        if (Date.now() - lastAlert > 1000) {
-            warnSnd.play();
-            lastAlert = Date.now();
-        }
+// ---- Optical flow (Lucas-Kanade simplified on grid) ----
+function computeOpticalFlow(curr, prev, W, H) {
+  // Sample grid of points and compute motion vectors
+  const step  = Math.floor(Math.max(W, H) / 20);
+  const flows = [];
+
+  for (let y = step; y < H - step; y += step) {
+    for (let x = step; x < W - step; x += step) {
+      const i = (y * W + x) * 4;
+
+      // Spatial gradients (Sobel-like simplified)
+      const ix = (curr[(y*W+(x+1))*4] - curr[(y*W+(x-1))*4]) * 0.5;
+      const iy = (curr[((y+1)*W+x)*4] - curr[((y-1)*W+x)*4]) * 0.5;
+
+      // Temporal gradient
+      const it = curr[i] - prev[i];
+
+      // Optical flow estimate (simple Horn-Schunck)
+      const denom = ix*ix + iy*iy + 0.01;
+      const u = -ix * it / denom;
+      const v = -iy * it / denom;
+
+      if (!isNaN(u) && !isNaN(v)) {
+        flows.push({ x, y, u: Math.max(-30, Math.min(30, u)), v: Math.max(-30, Math.min(30, v)) });
+      }
+    }
+  }
+  return flows;
+}
+
+// ---- Zone analysis ----
+function analyzeZones(flows, W, H) {
+  // Divide frame into zones
+  const zones = {
+    front:  { x: W*0.25, w: W*0.5,  y: H*0.25, h: H*0.5  }, // center
+    left:   { x: 0,      w: W*0.22, y: H*0.2,  h: H*0.6  },
+    right:  { x: W*0.78, w: W*0.22, y: H*0.2,  h: H*0.6  },
+  };
+
+  const result = { front: [], left: [], right: [] };
+
+  flows.forEach(f => {
+    for (const [name, z] of Object.entries(zones)) {
+      if (f.x >= z.x && f.x < z.x + z.w && f.y >= z.y && f.y < z.y + z.h) {
+        result[name].push(f);
+      }
+    }
+  });
+
+  return result;
+}
+
+function avgMagnitude(flows) {
+  if (!flows.length) return 0;
+  const sum = flows.reduce((acc, f) => acc + Math.sqrt(f.u*f.u + f.v*f.v), 0);
+  return sum / flows.length;
+}
+
+function avgHorizontal(flows) {
+  if (!flows.length) return 0;
+  return flows.reduce((acc, f) => acc + f.u, 0) / flows.length;
+}
+
+// ---- Estimate distance from optical flow magnitude ----
+// Larger magnitude in front zone → closer object (expanding flow = approaching)
+function estimateDistance(frontMag, sens) {
+  // Sin movimiento = sin vehículo detectado → distancia máxima
+  if (frontMag < 0.3) return 80;
+  const base = 25 / (1 + frontMag * 0.6 * (sens / 6));
+  return Math.max(0.5, Math.min(80, base));
+}
+
+function estimateTTC(dist, frontMag) {
+  if (frontMag < 0.5) return 99;
+  // Simple model: TTC ≈ dist / approaching_speed_estimate
+  const approachSpeed = frontMag * 0.4; // m/s heuristic
+  return Math.max(0.5, dist / approachSpeed);
+}
+
+// ---- Lane invasion detection ----
+function detectLaneInvasion(leftFlows, rightFlows, sens) {
+  const leftH  = Math.abs(avgHorizontal(leftFlows));
+  const rightH = Math.abs(avgHorizontal(rightFlows));
+  const threshold = 2.5 - (sens - 6) * 0.15;
+
+  return {
+    left:  leftH  > threshold && leftFlows.length > 3,
+    right: rightH > threshold && rightFlows.length > 3,
+  };
+}
+
+// ---- Draw overlay ----
+function drawOverlay(flows, zones, dist, ttc, invasion, W, H) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Draw ROI zones
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = getAlertColor(state.alertLevel);
+  ctx.fillRect(W*0.25, H*0.25, W*0.5, H*0.5); // front zone
+  ctx.restore();
+
+  // Left lane zone
+  if (lanesEnabled) {
+    ctx.save();
+    ctx.globalAlpha = invasion.left ? 0.25 : 0.07;
+    ctx.fillStyle   = invasion.left ? 'rgb(255,109,0)' : 'rgb(0,230,118)';
+    ctx.fillRect(0, H*0.2, W*0.22, H*0.6);
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = invasion.right ? 0.25 : 0.07;
+    ctx.fillStyle   = invasion.right ? 'rgb(255,109,0)' : 'rgb(0,230,118)';
+    ctx.fillRect(W*0.78, H*0.2, W*0.22, H*0.6);
+    ctx.restore();
+  }
+
+  // Draw distance arc
+  drawDistanceArc(ctx, W, H, dist);
+
+  // Draw flow vectors (sampled)
+  if (state.frameCount % 2 === 0) {
+    flows.forEach(f => {
+      const mag = Math.sqrt(f.u*f.u + f.v*f.v);
+      if (mag < 0.8) return;
+      const alpha = Math.min(0.8, mag / 10);
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.strokeStyle = getAlertColor(state.alertLevel);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.x + f.u * 3, f.y + f.v * 3);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Zone border
+  const alertColor = getAlertColor(state.alertLevel);
+  ctx.save();
+  ctx.strokeStyle = alertColor;
+  ctx.lineWidth   = 1.5;
+  ctx.globalAlpha = 0.5;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(W*0.25 + 2, H*0.25 + 2, W*0.5 - 4, H*0.5 - 4);
+  ctx.restore();
+}
+
+function drawDistanceArc(ctx, W, H, dist) {
+  const cx = W / 2;
+  const cy = H * 0.78;
+  const r  = W * 0.22;
+
+  // Background arc
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(200,240,216,0.08)';
+  ctx.lineWidth = 14;
+  ctx.stroke();
+
+  // Colored arc based on distance
+  const fill = Math.max(0, Math.min(1, 1 - dist / 30));
+  const color = dist < 5 ? 'rgb(255,23,68)' : dist < 12 ? 'rgb(255,234,0)' : 'rgb(0,230,118)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, Math.PI + fill * Math.PI);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 14;
+  ctx.lineCap = 'round';
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = color;
+  ctx.stroke();
+
+  // Label
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = color;
+  ctx.font = `bold 13px 'Share Tech Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.shadowBlur = 0;
+  const label = dist > 50 ? 'LIBRE' : `${dist.toFixed(1)}m`;
+  ctx.fillText(label, cx, cy - 10);
+  ctx.restore();
+}
+
+function getAlertColor(level) {
+  if (level === 'danger')   return 'rgb(255,23,68)';
+  if (level === 'warn')     return 'rgb(255,234,0)';
+  if (level === 'critical') return 'rgb(255,109,0)';
+  return 'rgb(0,230,118)';
+}
+
+// ---- Update HUD ----
+let prevAlertLevel   = '';
+let prevLeftInvaded  = false;
+let prevRightInvaded = false;
+
+function updateHUD(dist, ttc, invasion) {
+  // Distance metric
+  valDistance.textContent = dist > 50 ? '∞' : dist.toFixed(1);
+  valTTC.textContent      = ttc > 50  ? '∞' : ttc.toFixed(1);
+
+  // Determine alert level
+  let level = 'safe';
+  if      (dist < 4  || ttc < 1.5) level = 'danger';
+  else if (dist < 9  || ttc < 3)   level = 'warn';
+  else if (dist < 15 || ttc < 5)   level = 'warn';
+
+  state.alertLevel = level;
+
+  // Update distance box class
+  boxDistance.className = `metric-box ${level === 'safe' ? '' : level}`;
+  boxTTC.className      = `metric-box ${level === 'safe' ? '' : level}`;
+
+  // Main alert badge
+  mainAlert.className = `alert-badge ${level}`;
+  if (level === 'danger') {
+    mainAlert.textContent = '⛔ FRENA — DISTANCIA CRÍTICA';
+    dangerOverlay.className = 'active';
+  } else if (level === 'warn') {
+    mainAlert.textContent = '⚠ MANTÉN DISTANCIA SEGURA';
+    dangerOverlay.className = '';
+  } else {
+    mainAlert.textContent = '✓ DISTANCIA SEGURA';
+    dangerOverlay.className = '';
+  }
+
+  // Audio alerts
+  if (level !== prevAlertLevel) {
+    if (level === 'danger') { alarm('danger'); logEvent('⛔ Distancia crítica', 'var(--danger)'); }
+    if (level === 'warn')   { alarm('warn');   logEvent('⚠ Distancia reducida', 'var(--warn)');  }
+    if (level === 'safe' && prevAlertLevel !== 'safe') logEvent('✓ Zona segura', 'var(--safe)');
+    prevAlertLevel = level;
+  }
+
+  // Periodic warn beep
+  if (level === 'danger' && Date.now() - lastAudioTime > 600) alarm('danger');
+  if (level === 'warn'   && Date.now() - lastAudioTime > 1200) alarm('warn');
+
+  // Lane invasion
+  if (lanesEnabled) {
+    if (invasion.left) {
+      laneLeft.classList.add('invaded');
+      laneLeftState.textContent = '¡INVASIÓN!';
+      if (!prevLeftInvaded) {
+        alarm('invasion');
+        dangerOverlay.className = 'invasion-active';
+        logEvent('◁ Vehículo invade carril IZQ', 'var(--critical)');
+        mainAlert.className = 'alert-badge invasion';
+        mainAlert.textContent = '◁ INVASIÓN CARRIL IZQUIERDO';
+        prevLeftInvaded = true;
+      }
     } else {
-        document.body.style.backgroundColor = "#000";
-        status.innerText = "Radar de Tráfico OK";
+      laneLeft.classList.remove('invaded');
+      laneLeftState.textContent = 'Libre';
+      if (prevLeftInvaded) prevLeftInvaded = false;
     }
 
-    requestAnimationFrame(detectFrame);
+    if (invasion.right) {
+      laneRight.classList.add('invaded');
+      laneRightState.textContent = '¡INVASIÓN!';
+      if (!prevRightInvaded) {
+        alarm('invasion');
+        dangerOverlay.className = 'invasion-active';
+        logEvent('▷ Vehículo invade carril DER', 'var(--critical)');
+        mainAlert.className = 'alert-badge invasion';
+        mainAlert.textContent = '▷ INVASIÓN CARRIL DERECHO';
+        prevRightInvaded = true;
+      }
+    } else {
+      laneRight.classList.remove('invaded');
+      laneRightState.textContent = 'Libre';
+      if (prevRightInvaded) prevRightInvaded = false;
+    }
+  }
+
+  // If no invasion and was invasion-active, clear
+  if (!invasion.left && !invasion.right && dangerOverlay.classList.contains('invasion-active')) {
+    dangerOverlay.className = '';
+  }
 }
 
-setup();
+// ---- Main loop ----
+let offscreenCanvas, offCtx;
+
+function initOffscreen(W, H) {
+  offscreenCanvas = document.createElement('canvas');
+  offscreenCanvas.width  = Math.floor(W / 4);
+  offscreenCanvas.height = Math.floor(H / 4);
+  offCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+}
+
+function processFrame() {
+  if (!running) return;
+  state.frameCount++;
+
+  const W = video.videoWidth  || canvas.width;
+  const H = video.videoHeight || canvas.height;
+
+  if (!offscreenCanvas) initOffscreen(W, H);
+
+  const dW = offscreenCanvas.width;
+  const dH = offscreenCanvas.height;
+
+  // Downscale for perf
+  offCtx.drawImage(video, 0, 0, dW, dH);
+  const imgData = offCtx.getImageData(0, 0, dW, dH);
+
+  // Convert to grayscale
+  const gray = new Uint8Array(dW * dH);
+  for (let i = 0; i < gray.length; i++) {
+    const p = i * 4;
+    gray[i] = (imgData.data[p]*0.299 + imgData.data[p+1]*0.587 + imgData.data[p+2]*0.114) | 0;
+  }
+
+  if (prevFrameData) {
+    const flows  = computeOpticalFlow(gray, prevFrameData, dW, dH);
+    const zones  = analyzeZones(flows, dW, dH);
+
+    const frontMag = avgMagnitude(zones.front);
+    const rawDist  = estimateDistance(frontMag, sensitivity);
+    const rawTTC   = estimateTTC(rawDist, frontMag);
+
+    const dist = smooth(distHistory, rawDist);
+    const ttc  = smooth(ttcHistory, rawTTC);
+
+    const invasion = lanesEnabled ? detectLaneInvasion(zones.left, zones.right, sensitivity) : { left: false, right: false };
+
+    // Scale flows back to full canvas size
+    const scale = W / dW;
+    const scaledFlows = flows.map(f => ({ ...f, x: f.x * scale, y: f.y * scale }));
+
+    drawOverlay(scaledFlows, zones, dist, ttc, invasion, W, H);
+    updateHUD(dist, ttc, invasion);
+  }
+
+  prevFrameData = gray;
+
+  requestAnimationFrame(processFrame);
+}
+
+// ---- Controls ----
+startBtn.addEventListener('click', () => {
+  ensureAudio();
+  startCamera();
+});
+
+retryBtn.addEventListener('click', () => {
+  noCamera.classList.remove('show');
+  startup.classList.remove('hidden');
+});
+
+btnMute.addEventListener('click', () => {
+  muted = !muted;
+  btnMute.textContent = muted ? '🔇 Mute' : '🔊 Audio';
+  btnMute.classList.toggle('active', !muted);
+});
+
+btnLanes.addEventListener('click', () => {
+  lanesEnabled = !lanesEnabled;
+  btnLanes.textContent = lanesEnabled ? 'Carriles ON' : 'Carriles OFF';
+  btnLanes.classList.toggle('active', lanesEnabled);
+  if (!lanesEnabled) {
+    laneLeft.classList.remove('invaded');
+    laneRight.classList.remove('invaded');
+    laneLeftState.textContent  = 'Libre';
+    laneRightState.textContent = 'Libre';
+  }
+  logEvent(lanesEnabled ? 'Detección de carriles ON' : 'Detección de carriles OFF');
+});
+
+sensitivitySlider.addEventListener('input', (e) => {
+  sensitivity = parseInt(e.target.value);
+  logEvent(`Sensibilidad ajustada: ${sensitivity}/10`);
+});
+
+// Resize canvas on window resize
+window.addEventListener('resize', () => {
+  if (video.videoWidth) {
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    // Reinicializar offscreen para que el flujo óptico use las nuevas dimensiones
+    offscreenCanvas = null;
+  }
+});
 </script>
 </body>
 </html>
