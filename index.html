@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Driver Alert AI - Safety Mode</title>
+    <title>Driver Alert AI - Estable</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
@@ -13,7 +13,7 @@
         .btns { display: flex; gap: 10px; width: 100%; max-width: 400px; }
         button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
         .cal { background: #1e293b; color: white; border: 1px solid #334155; }
-        .done { background: #10b981 !important; color: white; }
+        .done { background: #10b981 !important; }
         #msg { width: 90%; padding: 20px; background: #1e293b; border-radius: 15px; font-weight: bold; }
         .danger { background: #dc2626 !important; animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.02);} 100% {transform: scale(1);} }
@@ -21,15 +21,15 @@
 </head>
 <body>
 <div class="ui">
-    <h3 style="margin:5px">Driver Alert AI 🚗</h3>
+    <h3>Driver Alert AI 🚗</h3>
     <video id="vid" playsinline></video>
-    <div id="val" style="color: #60a5fa; font-family: monospace;">Apertura: Iniciando...</div>
+    <div id="val" style="color: #60a5fa; font-family: monospace; font-size: 1.2rem;">Apertura: ---</div>
     <div class="btns">
         <button class="cal" id="b1" onclick="capture('open')">1. ABIERTOS</button>
         <button class="cal" id="b2" onclick="capture('closed')">2. CERRADOS</button>
     </div>
-    <div id="msg">Presiona INICIAR MONITOR</div>
-    <button id="go" style="background:#3b82f6; color:white; width:100%; max-width:400px; padding:15px; border-radius:12px; border:none; font-weight:bold;" onclick="start()">INICIAR MONITOR</button>
+    <div id="msg">Presiona INICIAR</div>
+    <button id="go" style="background:#3b82f6; color:white; width:100%; max-width:400px; padding:15px; border-radius:12px; font-weight:bold;" onclick="start()">INICIAR MONITOR</button>
 </div>
 <audio id="alarm" loop src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -43,9 +43,10 @@ let curVal = 0;
 let cal = { open: 0, closed: 0 };
 let limit = 0;
 let tStart = 0;
+let processing = false; // Control para que no se congele
 
 function capture(t) {
-    if (curVal <= 0 || isNaN(curVal)) return alert("Mueve un poco la cabeza para evitar reflejos en los lentes.");
+    if (curVal <= 0) return alert("Espera a que los números se muevan.");
     cal[t] = curVal;
     document.getElementById(t === 'open' ? 'b1' : 'b2').classList.add('done');
     if (cal.open && cal.closed) {
@@ -54,54 +55,53 @@ function capture(t) {
     }
 }
 
-function onResults(res) {
+async function onResults(res) {
     if (res.multiFaceLandmarks && res.multiFaceLandmarks[0]) {
         const f = res.multiFaceLandmarks[0];
-        
-        // Puntos de párpado superior e inferior (159 y 145)
-        const top = f[159] ? f[159].y : 0;
-        const bottom = f[145] ? f[145].y : 0;
-        
-        const diff = Math.abs(bottom - top);
-        
-        // Blindaje contra NaN
-        if (!isNaN(diff) && diff > 0) {
-            curVal = diff;
-            valTxt.innerText = "Apertura: " + curVal.toFixed(4);
-        }
+        // Calculamos usando puntos estables del ojo
+        const p1 = f[159].y;
+        const p2 = f[145].y;
+        curVal = Math.abs(p2 - p1);
+
+        // Actualizamos texto solo si el valor es real
+        valTxt.innerText = "Apertura: " + curVal.toFixed(5);
 
         if (limit > 0) {
             if (curVal < limit) {
                 if (tStart === 0) tStart = Date.now();
-                if (Date.now() - tStart > 1200) { // 1.2 segundos para evitar falsas alarmas por parpadeo
-                    msg.innerText = "¡ALERTA: DESPIERTE!";
+                if (Date.now() - tStart > 1200) {
+                    msg.innerText = "¡ALERTA! DESPIERTE";
                     msg.classList.add('danger');
                     alarm.play().catch(()=>{});
                 }
             } else {
                 tStart = 0;
-                msg.innerText = "Vigilancia Activa ✅";
+                msg.innerText = "Vigilando...";
                 msg.classList.remove('danger');
                 alarm.pause();
             }
         }
-    } else {
-        valTxt.innerText = "Buscando rostro...";
     }
+    processing = false; // Liberamos para la siguiente imagen
 }
 
 async function start() {
-    msg.innerText = "Cargando IA...";
     const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
     faceMesh.setOptions({maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
     faceMesh.onResults(onResults);
 
     const camera = new Camera(video, {
-        onFrame: async () => { await faceMesh.send({image: video}); },
+        onFrame: async () => {
+            if (!processing) { // Solo procesa si la IA está libre
+                processing = true;
+                await faceMesh.send({image: video});
+            }
+        },
         width: 640, height: 480
     });
     camera.start();
     document.getElementById('go').style.display = 'none';
+    msg.innerText = "Calibra Pasos 1 y 2";
 }
 </script>
 </body>
