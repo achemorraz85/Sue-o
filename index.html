@@ -2,99 +2,143 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vigilante AI - Detector de Sueño</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Driver Alert AI - Asistente de Viaje</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
 
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg: #020617;
+            --card: #1e293b;
             --accent: #3b82f6;
-            --danger: #ef4444;
+            --danger: #dc2626;
+            --success: #10b981;
         }
 
         body {
             margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
             color: white;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        .header {
+            padding: 15px;
             text-align: center;
+            background: var(--card);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid #334155;
         }
 
         video {
             width: 100%;
-            border-radius: 15px;
-            transform: scaleX(-1); /* Efecto espejo */
+            display: block;
+            transform: scaleX(-1);
             background: #000;
         }
 
-        #status-box {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
+        #status-indicator {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.4rem;
             font-weight: bold;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-            background: #334155;
+            background: var(--card);
+            transition: all 0.2s ease;
         }
 
-        .alerta-activa {
+        .alerta-critica {
             background-color: var(--danger) !important;
-            animation: pulse 0.5s infinite;
+            color: white;
+            animation: pulse 0.4s infinite;
         }
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.02); }
             100% { transform: scale(1); }
         }
 
-        button {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            cursor: pointer;
+        .controls {
             width: 100%;
-            font-weight: bold;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 20px;
         }
 
-        .info {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-top: 15px;
+        button {
+            border: none;
+            padding: 18px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        #startBtn { background: var(--accent); color: white; }
+        #mapsBtn { background: var(--success); color: white; display: none; }
+
+        .disclaimer {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-align: center;
+            padding: 0 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Vigilante AI 😴</h2>
-    <video id="input_video" playsinline></video>
-    
-    <div id="status-box">Sistema Desactivado</div>
-    
-    <button id="startBtn">ACTIVAR VIGILANCIA</button>
-    
-    <p class="info">Nota: Mantén el rostro iluminado y el celular fijo.</p>
+<div class="header">
+    <h2 style="margin:0">Driver Alert AI 🚗💤</h2>
+</div>
+
+<div class="main-container">
+    <div class="video-wrapper">
+        <video id="input_video" playsinline></video>
+    </div>
+
+    <div id="status-indicator">Sistema en espera...</div>
+
+    <div class="controls">
+        <button id="startBtn">INICIAR ASISTENTE DE VIAJE</button>
+        <button id="mapsBtn" onclick="window.open('https://www.google.com/maps/search/gasolineras+y+descanso/')">
+            📍 BUSCAR LUGAR DE DESCANSO
+        </button>
+    </div>
+
+    <p class="disclaimer">
+        ADVERTENCIA: Esta app es un asistente experimental. Si sientes sueño, detente inmediatamente. El desarrollador no se hace responsable de accidentes.
+    </p>
 </div>
 
 <audio id="alarmAudio" loop>
@@ -103,58 +147,61 @@
 
 <script>
 const videoElement = document.getElementById('input_video');
-const statusBox = document.getElementById('status-box');
+const statusBox = document.getElementById('status-indicator');
 const alarm = document.getElementById('alarmAudio');
 const startBtn = document.getElementById('startBtn');
+const mapsBtn = document.getElementById('mapsBtn');
 
 let wakeLock = null;
-let cerradoCounter = 0;
-const UMBRAL_CIERRE = 0.015; // Ajustar si es necesario
-const FRAMES_TOLERANCIA = 25; // Tiempo antes de la alarma (aprox 1 sec)
+let cerradoDesde = 0; // Marca de tiempo cuando se detecta cierre
 
-// 1. Función para mantener la pantalla encendida
+// --- CONFIGURACIÓN DE SENSIBILIDAD ---
+const UMBRAL_OJOS = 0.022; // Distancia entre párpados (ajusta según necesites)
+const TIEMPO_MICROSUEÑO = 1200; // Milisegundos antes de disparar alarma (1.2 segundos)
+
 async function requestWakeLock() {
     try {
-        if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-        }
-    } catch (err) {
-        console.log("WakeLock no soportado o denegado");
-    }
+        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+    } catch (err) { console.log("WakeLock error:", err); }
 }
 
-// 2. Procesar los resultados de la IA
 function onResults(results) {
     if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
-        statusBox.innerText = "Buscando rostro...";
+        statusBox.innerText = "⚠️ Rostro no detectado";
+        statusBox.style.color = "#fbbf24";
         return;
     }
 
     const landmarks = results.multiFaceLandmarks[0];
     
-    // Calculamos la apertura del ojo izquierdo (puntos específicos de MediaPipe)
-    // Usamos la diferencia en el eje Y entre el párpado superior e inferior
-    const ojoSuperior = landmarks[159].y;
-    const ojoInferior = landmarks[145].y;
-    const apertura = ojoInferior - ojoSuperior;
+    // Medimos apertura del ojo izquierdo (puntos 159 y 145)
+    const apertura = landmarks[145].y - landmarks[159].y;
 
-    if (apertura < UMBRAL_CIERRE) {
-        cerradoCounter++;
-        if (cerradoCounter > FRAMES_TOLERANCIA) {
-            statusBox.innerText = "¡DESPIERTA!";
-            statusBox.classList.add('alerta-activa');
+    if (apertura < UMBRAL_OJOS) {
+        // Los ojos parecen cerrados
+        if (cerradoDesde === 0) cerradoDesde = Date.now();
+        
+        let duracion = Date.now() - cerradoDesde;
+
+        if (duracion > TIEMPO_MICROSUEÑO) {
+            statusBox.innerText = "¡ALERTA: DESPIERTE!";
+            statusBox.classList.add('alerta-critica');
+            mapsBtn.style.display = 'block';
             if (alarm.paused) alarm.play();
+        } else {
+            statusBox.innerText = "Detectando fatiga...";
         }
     } else {
-        cerradoCounter = 0;
-        statusBox.innerText = "Estado: Despierto";
-        statusBox.classList.remove('alerta-activa');
+        // Ojos abiertos
+        cerradoDesde = 0;
+        statusBox.innerText = "Estado: Conductor Despierto";
+        statusBox.classList.remove('alerta-critica');
+        statusBox.style.color = "#10b981";
         alarm.pause();
         alarm.currentTime = 0;
     }
 }
 
-// 3. Configuración de MediaPipe Face Mesh
 const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
 });
@@ -162,18 +209,15 @@ const faceMesh = new FaceMesh({
 faceMesh.setOptions({
     maxNumFaces: 1,
     refineLandmarks: true,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
 });
 
 faceMesh.onResults(onResults);
 
-// 4. Inicio del sistema
 startBtn.onclick = async () => {
-    // Solicitar WakeLock para que no se apague la pantalla
     await requestWakeLock();
     
-    // Iniciar cámara
     const camera = new Camera(videoElement, {
         onFrame: async () => {
             await faceMesh.send({image: videoElement});
@@ -182,12 +226,15 @@ startBtn.onclick = async () => {
         height: 480
     });
     
-    camera.start();
-    
-    startBtn.style.display = 'none';
-    statusBox.innerText = "Vigilando...";
+    camera.start().then(() => {
+        startBtn.style.display = 'none';
+        statusBox.innerText = "Vigilancia Activa";
+    }).catch(err => {
+        alert("Error al acceder a la cámara. Asegúrate de usar HTTPS.");
+    });
 };
 </script>
 
 </body>
 </html>
+
