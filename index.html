@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigilante AI - Detector de Sueño</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 15px;
+            transform: scaleX(-1); /* Efecto espejo */
+            background: #000;
+        }
+
+        #status-box {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            background: #334155;
+        }
+
+        .alerta-activa {
+            background-color: var(--danger) !important;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .info {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Vigilante AI 😴</h2>
+    <video id="input_video" playsinline></video>
+    
+    <div id="status-box">Sistema Desactivado</div>
+    
+    <button id="startBtn">ACTIVAR VIGILANCIA</button>
+    
+    <p class="info">Nota: Mantén el rostro iluminado y el celular fijo.</p>
+</div>
+
+<audio id="alarmAudio" loop>
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
+
+<script>
+const videoElement = document.getElementById('input_video');
+const statusBox = document.getElementById('status-box');
+const alarm = document.getElementById('alarmAudio');
+const startBtn = document.getElementById('startBtn');
+
+let wakeLock = null;
+let cerradoCounter = 0;
+const UMBRAL_CIERRE = 0.015; // Ajustar si es necesario
+const FRAMES_TOLERANCIA = 25; // Tiempo antes de la alarma (aprox 1 sec)
+
+// 1. Función para mantener la pantalla encendida
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+        }
+    } catch (err) {
+        console.log("WakeLock no soportado o denegado");
+    }
+}
+
+// 2. Procesar los resultados de la IA
+function onResults(results) {
+    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+        statusBox.innerText = "Buscando rostro...";
+        return;
+    }
+
+    const landmarks = results.multiFaceLandmarks[0];
+    
+    // Calculamos la apertura del ojo izquierdo (puntos específicos de MediaPipe)
+    // Usamos la diferencia en el eje Y entre el párpado superior e inferior
+    const ojoSuperior = landmarks[159].y;
+    const ojoInferior = landmarks[145].y;
+    const apertura = ojoInferior - ojoSuperior;
+
+    if (apertura < UMBRAL_CIERRE) {
+        cerradoCounter++;
+        if (cerradoCounter > FRAMES_TOLERANCIA) {
+            statusBox.innerText = "¡DESPIERTA!";
+            statusBox.classList.add('alerta-activa');
+            if (alarm.paused) alarm.play();
+        }
+    } else {
+        cerradoCounter = 0;
+        statusBox.innerText = "Estado: Despierto";
+        statusBox.classList.remove('alerta-activa');
+        alarm.pause();
+        alarm.currentTime = 0;
+    }
+}
+
+// 3. Configuración de MediaPipe Face Mesh
+const faceMesh = new FaceMesh({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+});
+
+faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+});
+
+faceMesh.onResults(onResults);
+
+// 4. Inicio del sistema
+startBtn.onclick = async () => {
+    // Solicitar WakeLock para que no se apague la pantalla
+    await requestWakeLock();
+    
+    // Iniciar cámara
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            await faceMesh.send({image: videoElement});
+        },
+        width: 640,
+        height: 480
+    });
+    
+    camera.start();
+    
+    startBtn.style.display = 'none';
+    statusBox.innerText = "Vigilando...";
+};
+</script>
+
+</body>
+</html>
