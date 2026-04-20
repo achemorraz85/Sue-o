@@ -2,785 +2,302 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>ADAS Guard — TF Vision</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DIVISOR DE hMORRAZ</title>
 
-<!-- TensorFlow.js + COCO-SSD -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.11.0/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111111">
+
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
 
-:root{
-  --safe:#00e676; --warn:#ffea00; --danger:#ff1744; --critical:#ff6d00;
-  --bg:#030709; --panel:rgba(3,10,16,0.88); --border:rgba(0,230,118,0.22);
-  --text:#c8f0d8; --dim:rgba(200,240,216,0.42);
-}
+  :root {
+    --yellow: #FFD600;
+    --black: #111111;
+    --steel: #2a2a2a;
+    --red: #E02020;
+    --white: #F5F0E8;
+  }
 
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;
-  overflow:hidden;height:100dvh;width:100vw;user-select:none;-webkit-user-select:none;}
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    -webkit-tap-highlight-color: transparent; 
+  }
 
-/* VIDEO + CANVAS */
-#camera-feed{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
-#overlay-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Ajuste para el notch de celulares modernos */
+    padding: env(safe-area-inset-top) 16px 20px 16px;
+  }
 
-/* HUD */
-#hud{position:fixed;inset:0;z-index:2;pointer-events:none;}
+  header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
 
-/* TOP BAR */
-#panel-top{
-  position:absolute;top:0;left:0;right:0;
-  padding:14px 16px 22px;
-  display:flex;justify-content:space-between;align-items:center;
-  background:linear-gradient(to bottom,rgba(3,7,9,.94) 0%,transparent 100%);
-}
-.logo{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:4px;color:var(--safe);}
-.logo em{color:var(--dim);font-style:normal;}
-.status-pill{
-  display:flex;gap:6px;align-items:center;
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:20px;padding:5px 12px;backdrop-filter:blur(10px);
-}
-.sdot{width:7px;height:7px;border-radius:50%;background:var(--safe);box-shadow:0 0 6px var(--safe);animation:blink 2s infinite;}
-.sdot.loading{background:var(--warn);box-shadow:0 0 6px var(--warn);animation:blink .35s infinite;}
-.sdot.error{background:var(--danger);box-shadow:0 0 6px var(--danger);animation:none;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
-.stxt{font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
-#clock-el{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--dim);}
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+    color: var(--yellow);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
 
-/* ALERT BADGE */
-#alert-center{position:absolute;top:17%;left:50%;transform:translateX(-50%);white-space:nowrap;pointer-events:none;}
-.abadge{display:inline-block;padding:8px 22px;border-radius:4px;font-size:12px;font-weight:700;
-  letter-spacing:3px;text-transform:uppercase;backdrop-filter:blur(8px);transition:all .3s;}
-.abadge.safe  {background:rgba(0,230,118,.12);border:1px solid var(--safe);color:var(--safe);}
-.abadge.warn  {background:rgba(255,234,0,.15);border:1px solid var(--warn);color:var(--warn);animation:flash .6s infinite alternate;}
-.abadge.danger{background:rgba(255,23,68,.2);border:1px solid var(--danger);color:var(--danger);animation:flash .32s infinite alternate;}
-.abadge.invasion{background:rgba(255,109,0,.2);border:1px solid var(--critical);color:var(--critical);animation:flash .42s infinite alternate;}
-@keyframes flash{from{opacity:1;box-shadow:0 0 16px currentColor;}to{opacity:.5;box-shadow:none;}}
+  .tape-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 20px;
+  }
 
-/* LEFT METRICS */
-#panel-left{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;pointer-events:all;}
-.mbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;
-  min-width:90px;text-align:center;backdrop-filter:blur(14px);position:relative;overflow:hidden;transition:border-color .3s;}
-.mbox::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--safe);transition:background .3s;}
-.mbox.warn::before{background:var(--warn);} .mbox.danger::before{background:var(--danger);}
-.mbox.warn{border-color:rgba(255,234,0,.3);} .mbox.danger{border-color:rgba(255,23,68,.4);}
-.mlabel{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:2px;}
-.mval{font-family:'Share Tech Mono',monospace;font-size:26px;line-height:1;color:var(--safe);transition:color .3s;}
-.mbox.warn .mval{color:var(--warn);} .mbox.danger .mval{color:var(--danger);}
-.munit{font-size:8px;color:var(--dim);letter-spacing:1px;}
+  canvas#tape {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  }
 
-/* RIGHT LANE */
-#panel-right{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:all;}
-.lbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px;
-  width:84px;text-align:center;backdrop-filter:blur(14px);position:relative;overflow:hidden;transition:border-color .3s;}
-.lbox::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--safe);transition:background .3s;}
-.lbox.invaded{border-color:rgba(255,109,0,.55);}
-.lbox.invaded::after{background:var(--critical);box-shadow:0 0 10px var(--critical);}
-.licon{font-size:20px;margin-bottom:2px;} .llabel{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);}
-.lstate{font-size:10px;font-weight:700;letter-spacing:1px;margin-top:2px;color:var(--safe);transition:color .3s;}
-.lbox.invaded .lstate{color:var(--critical);}
+  .card {
+    background: var(--steel);
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 16px;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 15px;
+  }
 
-/* BOTTOM BAR */
-#panel-bottom{
-  position:absolute;bottom:0;left:0;right:0;padding:12px 16px 16px;
-  display:flex;justify-content:space-between;align-items:flex-end;
-  background:linear-gradient(to top,rgba(3,7,9,.94) 0%,transparent 100%);
-  pointer-events:all;
-}
-.cbtn{background:var(--panel);border:1px solid var(--border);color:var(--dim);font-family:'Rajdhani',sans-serif;
-  font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;
-  border-radius:6px;cursor:pointer;backdrop-filter:blur(8px);transition:all .2s;}
-.cbtn.on{border-color:var(--safe);color:var(--safe);background:rgba(0,230,118,.08);}
-.cbtn:active{transform:scale(.96);}
-.swrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
-.slabel{font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;}
-input[type=range]{-webkit-appearance:none;width:90px;height:3px;background:var(--border);border-radius:2px;outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--safe);cursor:pointer;}
+  .card-title {
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 12px;
+  }
 
-/* FPS + DETECTION BAR */
-#info-bar{position:absolute;bottom:64px;left:0;right:0;height:2px;background:rgba(0,230,118,.08);overflow:hidden;pointer-events:none;}
-#fps-bar{height:100%;width:0%;background:linear-gradient(to right,var(--safe),var(--warn));transition:width .15s;}
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-/* DETECTION COUNT */
-#det-count{position:absolute;top:17%;right:14px;font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:var(--dim);letter-spacing:1px;pointer-events:none;}
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
 
-/* EVENT LOG */
-#event-log{position:absolute;bottom:70px;left:12px;display:flex;flex-direction:column-reverse;
-  gap:3px;max-height:70px;overflow:hidden;pointer-events:none;}
-.logentry{font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;
-  background:rgba(3,10,16,.78);border-left:2px solid var(--border);color:var(--dim);
-  border-radius:0 3px 3px 0;animation:logIn .2s ease-out;white-space:nowrap;}
-@keyframes logIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+  label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: #888;
+  }
 
-/* DANGER BORDER OVERLAY */
-#danger-overlay{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;border:4px solid transparent;transition:opacity .2s;}
-#danger-overlay.don{opacity:1;border-color:var(--danger);animation:dpulse .38s infinite alternate;}
-#danger-overlay.ion{opacity:1;border-color:var(--critical);animation:ipulse .52s infinite alternate;}
-@keyframes dpulse{from{box-shadow:inset 0 0 90px rgba(255,23,68,.5);}to{box-shadow:inset 0 0 18px rgba(255,23,68,.1);}}
-@keyframes ipulse{from{box-shadow:inset 0 0 70px rgba(255,109,0,.45);}to{box-shadow:inset 0 0 14px rgba(255,109,0,.08);}}
+  input, select {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem;
+    padding: 12px 8px;
+    width: 100%;
+    outline: none;
+    text-align: center;
+    /* Elimina sombras internas en iOS */
+    -webkit-appearance: none;
+  }
 
-/* STARTUP */
-#startup{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:16px;padding:30px;transition:opacity .5s;}
-#startup.hidden{opacity:0;pointer-events:none;} #startup.gone{display:none;}
-.slogo{font-family:'Share Tech Mono',monospace;font-size:28px;letter-spacing:6px;color:var(--safe);
-  text-shadow:0 0 30px rgba(0,230,118,.5);}
-.ssub{font-size:11px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;}
-.sinfo{font-size:12px;color:var(--dim);text-align:center;line-height:1.8;max-width:300px;}
-.sinfo strong{color:var(--safe);}
-.sbadge{background:rgba(0,230,118,.08);border:1px solid var(--border);border-radius:6px;
-  padding:10px 18px;font-size:11px;color:var(--dim);text-align:center;max-width:300px;line-height:1.6;}
-.sbadge span{color:var(--safe);font-weight:700;}
-.startbtn{background:transparent;border:1px solid var(--safe);color:var(--safe);font-family:'Rajdhani',sans-serif;
-  font-size:14px;font-weight:700;letter-spacing:4px;text-transform:uppercase;padding:13px 34px;
-  border-radius:4px;cursor:pointer;margin-top:4px;transition:background .3s,box-shadow .3s;}
-.startbtn:hover,.startbtn:active{background:rgba(0,230,118,.12);box-shadow:0 0 22px rgba(0,230,118,.3);}
-.disclaimer{font-size:9px;color:rgba(200,240,216,.22);text-align:center;max-width:280px;line-height:1.6;}
+  input:focus { border-color: var(--yellow); }
 
-/* LOADING SCREEN */
-#loading{position:fixed;inset:0;z-index:9;background:var(--bg);display:none;
-  flex-direction:column;align-items:center;justify-content:center;gap:20px;}
-#loading.show{display:flex;}
-.llogo{font-family:'Share Tech Mono',monospace;font-size:22px;letter-spacing:5px;color:var(--safe);}
-.lmsg{font-size:12px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
-.lbar-wrap{width:220px;height:3px;background:rgba(0,230,118,.1);border-radius:2px;overflow:hidden;}
-.lbar{height:100%;background:var(--safe);border-radius:2px;animation:lbarAnim 1.8s ease-in-out infinite;}
-@keyframes lbarAnim{0%{width:0%;margin-left:0;}50%{width:70%;}100%{width:0%;margin-left:100%;}}
+  .divisor-input {
+    background: #1a1a1a;
+    border: 2px solid var(--red);
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
 
-/* NO CAMERA */
-#no-camera{display:none;position:fixed;inset:0;z-index:5;background:var(--bg);
-  flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:30px;}
-#no-camera.show{display:flex;}
-#no-camera h2{color:var(--warn);font-size:18px;letter-spacing:2px;}
-#no-camera p{color:var(--dim);font-size:12px;line-height:1.6;max-width:300px;}
+  .sep { font-size: 1.2rem; color: #555; margin-top: 15px; }
+
+  .result-card {
+    background: #111;
+    border: 2px solid var(--yellow);
+    border-radius: 12px;
+    padding: 30px 20px;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+  }
+
+  .result-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 20vw, 6rem);
+    color: white;
+    line-height: 1;
+  }
+
+  .frac-color {
+    color: var(--yellow);
+    margin-left: 10px;
+  }
 </style>
 </head>
 <body>
 
-<!-- STARTUP -->
-<div id="startup">
-  <div class="slogo">ADAS GUARD</div>
-  <div class="ssub">TensorFlow · COCO-SSD · Gratis</div>
-  <div class="sinfo">
-    Detección de vehículos en tiempo real<br>
-    usando IA que corre <strong>directo en tu teléfono</strong>.<br>
-    Sin internet, sin API key, sin costo.
-  </div>
-  <div class="sbadge">
-    ✓ Detecta: <span>autos, camiones, motos, buses</span><br>
-    ✓ Estima distancia por tamaño visual<br>
-    ✓ Detecta invasión de carril lateral<br>
-    ✓ Alertas de audio automáticas
-  </div>
-  <button class="startbtn" id="start-btn">Iniciar Sistema</button>
-  <div class="disclaimer">⚠ Sistema de asistencia. El conductor es responsable en todo momento de conducir de forma segura.</div>
+<header>
+  <h1>DIVISOR DE hMORRAZ</h1>
+</header>
+
+<div class="tape-wrap">
+  <canvas id="tape" width="900" height="140"></canvas>
 </div>
 
-<!-- LOADING MODEL -->
-<div id="loading">
-  <div class="llogo">CARGANDO IA</div>
-  <div class="lmsg" id="load-msg">Iniciando cámara...</div>
-  <div class="lbar-wrap"><div class="lbar"></div></div>
-</div>
-
-<!-- NO CAMERA -->
-<div id="no-camera">
-  <h2>⚠ CÁMARA NO DISPONIBLE</h2>
-  <p>No se pudo acceder a la cámara trasera. Verifica los permisos del navegador e intenta de nuevo.</p>
-  <button class="startbtn" id="retry-btn">Reintentar</button>
-</div>
-
-<!-- VIDEO + CANVAS -->
-<video id="camera-feed" autoplay muted playsinline></video>
-<canvas id="overlay-canvas"></canvas>
-<div id="danger-overlay"></div>
-
-<!-- HUD -->
-<div id="hud">
-  <div id="panel-top">
-    <div class="logo">ADAS<em>guard</em></div>
-    <div class="status-pill">
-      <div class="sdot" id="sdot"></div>
-      <div class="stxt" id="stxt">LISTO</div>
-    </div>
-    <div id="clock-el">--:--</div>
-  </div>
-
-  <div id="alert-center">
-    <div class="abadge safe" id="main-alert">VÍA DESPEJADA</div>
-  </div>
-
-  <div id="det-count" id="det-count"></div>
-
-  <div id="panel-left">
-    <div class="mbox" id="box-dist">
-      <div class="mlabel">Distancia</div>
-      <div class="mval" id="val-dist">--</div>
-      <div class="munit">metros</div>
-    </div>
-    <div class="mbox" id="box-fps">
-      <div class="mlabel">FPS</div>
-      <div class="mval" id="val-fps">--</div>
-      <div class="munit">detec/s</div>
+<form id="calcForm" autocomplete="off">
+  <div class="card">
+    <p class="card-title">Medida a dividir (Pulgadas)</p>
+    <div class="input-row">
+      <div class="input-group" style="flex: 2;">
+        <label>Pulgadas</label>
+        <input type="number" id="inches" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="sep">+</div>
+      <div class="input-group">
+        <label>Num.</label>
+        <input type="number" id="num" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="sep">/</div>
+      <div class="input-group">
+        <label>Den.</label>
+        <select id="den">
+          <option value="2">2</option>
+          <option value="4" selected>4</option>
+          <option value="8">8</option>
+          <option value="16">16</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <div id="panel-right">
-    <div class="lbox" id="lane-left-box">
-      <div class="licon">◁</div>
-      <div class="llabel">Izq</div>
-      <div class="lstate" id="lane-left-txt">Libre</div>
-    </div>
-    <div class="lbox" id="lane-right-box">
-      <div class="licon">▷</div>
-      <div class="llabel">Der</div>
-      <div class="lstate" id="lane-right-txt">Libre</div>
+  <div class="card">
+    <p class="card-title">Dividir entre</p>
+    <div class="input-group">
+      <input type="number" id="divisor" placeholder="1" class="divisor-input" inputmode="numeric">
     </div>
   </div>
+</form>
 
-  <div id="info-bar"><div id="fps-bar"></div></div>
-  <div id="event-log"></div>
-
-  <div id="panel-bottom">
-    <button class="cbtn on" id="btn-mute">🔊 Audio</button>
-    <div class="swrap">
-      <div class="slabel">Sensibilidad</div>
-      <input type="range" id="sens-slider" min="1" max="10" value="5">
-    </div>
-    <button class="cbtn on" id="btn-lanes">Carriles ON</button>
-  </div>
+<div class="result-card">
+  <p class="card-title" style="margin-bottom: 15px;">Medida Final (1/16")</p>
+  <div class="result-main" id="resultMain">0"</div>
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════════
-// ADAS GUARD — TensorFlow.js + COCO-SSD Engine
-// 100% gratuito, corre en el dispositivo
-// ════════════════════════════════════════════════════════════
+const precision = 16;
 
-const video       = document.getElementById('camera-feed');
-const overlayC    = document.getElementById('overlay-canvas');
-const ctx         = overlayC.getContext('2d');
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-// UI refs
-const startup     = document.getElementById('startup');
-const loadingDiv  = document.getElementById('loading');
-const loadMsg     = document.getElementById('load-msg');
-const noCamera    = document.getElementById('no-camera');
-const startBtn    = document.getElementById('start-btn');
-const retryBtn    = document.getElementById('retry-btn');
-const sdot        = document.getElementById('sdot');
-const stxt        = document.getElementById('stxt');
-const clockEl     = document.getElementById('clock-el');
-const mainAlert   = document.getElementById('main-alert');
-const valDist     = document.getElementById('val-dist');
-const valFps      = document.getElementById('val-fps');
-const boxDist     = document.getElementById('box-dist');
-const boxFps      = document.getElementById('box-fps');
-const dangerOvl   = document.getElementById('danger-overlay');
-const laneLeftBox = document.getElementById('lane-left-box');
-const laneRightBox= document.getElementById('lane-right-box');
-const laneLeftTxt = document.getElementById('lane-left-txt');
-const laneRightTxt= document.getElementById('lane-right-txt');
-const eventLog    = document.getElementById('event-log');
-const btnMute     = document.getElementById('btn-mute');
-const btnLanes    = document.getElementById('btn-lanes');
-const sensSlider  = document.getElementById('sens-slider');
-const fpsBar      = document.getElementById('fps-bar');
-
-// State
-let model         = null;
-let muted         = false;
-let lanesEnabled  = true;
-let running       = false;
-let sensitivity   = 5;       // 1-10
-let audioCtx      = null;
-let lastBeep      = 0;
-let frameCount    = 0;
-let lastFpsTime   = Date.now();
-let currentFps    = 0;
-
-// Detection smoothing
-let prevRisk      = 'safe';
-let prevLeftInv   = false;
-let prevRightInv  = false;
-
-// Smoothing buffers
-const distBuf     = [];
-const SMOOTH      = 5;
-
-// Vehicle classes in COCO-SSD
-const VEHICLE_CLASSES = new Set(['car','truck','bus','motorcycle','bicycle','boat','airplane']);
-
-// ── CLOCK ──
-setInterval(()=>{
-  clockEl.textContent = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
-},1000);
-
-// ── STATUS ──
-function setStatus(txt, state=''){
-  stxt.textContent = txt;
-  sdot.className = 'sdot' + (state ? ' '+state : '');
+function formatInches(totalInches, prec) {
+  if (totalInches === 0) return '0"';
+  const wholeIn = Math.floor(totalInches);
+  let frac = totalInches - wholeIn;
+  const roundedFrac = Math.round(frac * prec);
+  
+  let finalIn = wholeIn;
+  let fn = roundedFrac;
+  if (fn >= prec) { finalIn++; fn = 0; }
+  
+  if (fn === 0) return `${finalIn}"`;
+  
+  const common = gcd(fn, prec);
+  const n = fn / common;
+  const d = prec / common;
+  
+  const fracHtml = `<span class="frac-color">${n}/${d}"</span>`;
+  return finalIn > 0 ? `${finalIn}${fracHtml}` : fracHtml;
 }
 
-// ── AUDIO ──
-function ensureAudio(){
-  if(!audioCtx) audioCtx = new(window.AudioContext||window.webkitAudioContext)();
-}
-function beep(freq=880, dur=0.15, vol=0.4, type='sine'){
-  if(muted) return;
-  const now = Date.now();
-  if(now - lastBeep < 250) return;
-  lastBeep = now;
-  ensureAudio();
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  o.frequency.value = freq; o.type = type;
-  g.gain.setValueAtTime(vol, audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-  o.start(); o.stop(audioCtx.currentTime + dur);
-}
-function alertSound(level){
-  if(level==='warn')     beep(660, 0.18, 0.30, 'sine');
-  if(level==='danger')   beep(920, 0.22, 0.55, 'square');
-  if(level==='invasion') beep(760, 0.28, 0.60, 'triangle');
-}
+function calculate() {
+  const inVal = document.getElementById('inches').value;
+  const divVal = document.getElementById('divisor').value;
 
-// Periodic beep while danger
-setInterval(()=>{
-  if(prevRisk==='danger' && !muted && Date.now()-lastBeep>700) beep(920,.18,.45,'square');
-  if(prevRisk==='warn'   && !muted && Date.now()-lastBeep>1500) beep(660,.15,.25,'sine');
-},400);
-
-// ── LOG ──
-function logEvent(msg, color=''){
-  const el = document.createElement('div');
-  el.className = 'logentry';
-  if(color) el.style.borderLeftColor = color;
-  const t = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  el.textContent = `[${t}] ${msg}`;
-  eventLog.prepend(el);
-  setTimeout(()=>el.remove(), 9000);
-}
-
-// ── DISTANCE ESTIMATION ──
-// Based on bounding box width relative to frame width
-// A car at ~5m fills ~60% of a typical dashcam view
-// Calibrated: relativeWidth → distance
-function estimateDistance(bbox, frameW, frameH){
-  const [x, y, w, h] = bbox;
-  const relW = w / frameW;
-  const relH = h / frameH;
-  const relArea = relW * relH;
-
-  // Distance model: larger bbox = closer
-  // Tuned for forward-facing phone camera
-  if(relW > 0.65) return 3;
-  if(relW > 0.50) return 5;
-  if(relW > 0.38) return 8;
-  if(relW > 0.26) return 12;
-  if(relW > 0.18) return 18;
-  if(relW > 0.12) return 25;
-  if(relW > 0.07) return 35;
-  if(relW > 0.04) return 50;
-  return 70;
-}
-
-// ── ZONE CLASSIFICATION ──
-// Determines if a detection is in front, left, or right zone
-function classifyZone(bbox, frameW){
-  const [x, y, w, h] = bbox;
-  const centerX = x + w/2;
-  const rel = centerX / frameW;
-
-  if(rel < 0.28) return 'left';
-  if(rel > 0.72) return 'right';
-  return 'front';
-}
-
-// ── SMOOTHED DISTANCE ──
-function smoothDist(raw){
-  distBuf.push(raw);
-  if(distBuf.length > SMOOTH) distBuf.shift();
-  return distBuf.reduce((a,b)=>a+b,0) / distBuf.length;
-}
-
-// ── RISK FROM DISTANCE ──
-function riskFromDist(dist, sens){
-  // Sensitivity 1-10 shifts thresholds
-  const factor = 1 + (sens - 5) * 0.08; // sens=10 → 1.4x stricter
-  const dangerThresh = 7  * factor;
-  const warnThresh   = 18 * factor;
-  if(dist < dangerThresh) return 'danger';
-  if(dist < warnThresh)   return 'warn';
-  return 'safe';
-}
-
-// ── MAIN DETECTION LOOP ──
-let detectionRunning = false;
-
-async function detectFrame(){
-  if(!running || !model || detectionRunning) return;
-  detectionRunning = true;
-
-  const W = video.videoWidth;
-  const H = video.videoHeight;
-
-  try {
-    // Run COCO-SSD detection
-    const predictions = await model.detect(video);
-
-    // FPS counter
-    frameCount++;
-    const now = Date.now();
-    if(now - lastFpsTime >= 1000){
-      currentFps = frameCount;
-      frameCount = 0;
-      lastFpsTime = now;
-      valFps.textContent = currentFps;
-      fpsBar.style.width = Math.min(100, currentFps * 5) + '%';
-    }
-
-    // Filter vehicle predictions above confidence threshold
-    const minConf = 0.30 + (sensitivity - 1) * 0.04; // 0.30–0.66 based on sensitivity
-    const vehicles = predictions.filter(p =>
-      VEHICLE_CLASSES.has(p.class) && p.score >= minConf
-    );
-
-    // Classify zones
-    let frontVehicles = [];
-    let leftVehicles  = [];
-    let rightVehicles = [];
-
-    vehicles.forEach(v => {
-      const zone = classifyZone(v.bbox, W);
-      if(zone === 'front') frontVehicles.push(v);
-      if(zone === 'left')  leftVehicles.push(v);
-      if(zone === 'right') rightVehicles.push(v);
-    });
-
-    // Closest front vehicle
-    let closestDist = 999;
-    let closestVehicle = null;
-    frontVehicles.forEach(v => {
-      const d = estimateDistance(v.bbox, W, H);
-      if(d < closestDist){ closestDist = d; closestVehicle = v; }
-    });
-
-    const smoothedDist = frontVehicles.length ? smoothDist(closestDist) : 999;
-    const risk = frontVehicles.length ? riskFromDist(smoothedDist, sensitivity) : 'safe';
-
-    // Lane invasion: vehicle in lateral zone moving toward center
-    const leftInv  = lanesEnabled && leftVehicles.length  > 0;
-    const rightInv = lanesEnabled && rightVehicles.length > 0;
-
-    // Update HUD
-    updateHUD(risk, smoothedDist, frontVehicles.length, leftInv, rightInv);
-
-    // Draw overlay
-    drawOverlay(vehicles, frontVehicles, leftInv, rightInv, W, H, risk, smoothedDist);
-
-  } catch(e){
-    console.error('Detection error:', e);
-  }
-
-  detectionRunning = false;
-  requestAnimationFrame(detectFrame);
-}
-
-// ── UPDATE HUD ──
-function updateHUD(risk, dist, frontCount, leftInv, rightInv){
-  // Distance
-  if(frontCount > 0){
-    valDist.textContent = dist > 60 ? '60+' : Math.round(dist);
-    const cls = risk === 'safe' ? '' : risk;
-    boxDist.className = `mbox ${cls}`;
-  } else {
-    valDist.textContent = '∞';
-    boxDist.className = 'mbox';
-  }
-
-  // Main alert + danger overlay (front)
-  if(!leftInv && !rightInv){
-    if(risk === 'danger'){
-      mainAlert.className = 'abadge danger';
-      mainAlert.textContent = '⛔ FRENA — DISTANCIA CRÍTICA';
-      dangerOvl.className = 'don';
-      if(risk !== prevRisk){ alertSound('danger'); logEvent('⛔ Distancia crítica: '+Math.round(dist)+'m','var(--danger)'); }
-    } else if(risk === 'warn'){
-      mainAlert.className = 'abadge warn';
-      mainAlert.textContent = '⚠ MANTÉN DISTANCIA — '+Math.round(dist)+'m';
-      dangerOvl.className = '';
-      if(risk !== prevRisk){ alertSound('warn'); logEvent('⚠ Vehículo a '+Math.round(dist)+'m','var(--warn)'); }
-    } else {
-      mainAlert.className = 'abadge safe';
-      mainAlert.textContent = frontCount > 0 ? '✓ DISTANCIA SEGURA — '+Math.round(dist)+'m' : '✓ VÍA DESPEJADA';
-      dangerOvl.className = '';
-      if(prevRisk !== 'safe' && !prevLeftInv && !prevRightInv) logEvent('✓ Vía despejada','var(--safe)');
-    }
-  }
-  prevRisk = risk;
-
-  // Lane invasion alerts
-  if(leftInv){
-    laneLeftBox.classList.add('invaded');
-    laneLeftTxt.textContent = '¡INVASIÓN!';
-    if(!prevLeftInv){
-      alertSound('invasion');
-      dangerOvl.className = 'ion';
-      mainAlert.className = 'abadge invasion';
-      mainAlert.textContent = '◁ VEHÍCULO EN CARRIL IZQ';
-      logEvent('◁ Vehículo detectado carril izq','var(--critical)');
-      prevLeftInv = true;
-    }
-  } else {
-    laneLeftBox.classList.remove('invaded');
-    laneLeftTxt.textContent = 'Libre';
-    prevLeftInv = false;
-  }
-
-  if(rightInv){
-    laneRightBox.classList.add('invaded');
-    laneRightTxt.textContent = '¡INVASIÓN!';
-    if(!prevRightInv){
-      alertSound('invasion');
-      dangerOvl.className = 'ion';
-      mainAlert.className = 'abadge invasion';
-      mainAlert.textContent = '▷ VEHÍCULO EN CARRIL DER';
-      logEvent('▷ Vehículo detectado carril der','var(--critical)');
-      prevRightInv = true;
-    }
-  } else {
-    laneRightBox.classList.remove('invaded');
-    laneRightTxt.textContent = 'Libre';
-    prevRightInv = false;
-  }
-
-  if(!leftInv && !rightInv && dangerOvl.classList.contains('ion')) dangerOvl.className = '';
-}
-
-// ── DRAW OVERLAY ──
-function drawOverlay(allVehicles, frontVehicles, leftInv, rightInv, W, H, risk, dist){
-  ctx.clearRect(0, 0, W, H);
-
-  // Zone guide lines (subtle)
-  ctx.save();
-  ctx.globalAlpha = 0.09;
-  ctx.strokeStyle = 'rgb(0,230,118)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4,12]);
-  // Left zone boundary
-  ctx.beginPath(); ctx.moveTo(W*0.28, H*0.1); ctx.lineTo(W*0.28, H*0.95); ctx.stroke();
-  // Right zone boundary
-  ctx.beginPath(); ctx.moveTo(W*0.72, H*0.1); ctx.lineTo(W*0.72, H*0.95); ctx.stroke();
-  // Horizon
-  ctx.beginPath(); ctx.moveTo(W*0.05, H*0.38); ctx.lineTo(W*0.95, H*0.38); ctx.stroke();
-  ctx.restore();
-
-  // Lane invasion highlights
-  if(leftInv){
-    ctx.save();
-    ctx.globalAlpha = 0.16; ctx.fillStyle='rgb(255,109,0)';
-    ctx.fillRect(0, H*0.05, W*0.28, H*0.9);
-    ctx.globalAlpha = 0.55; ctx.strokeStyle='rgb(255,109,0)';
-    ctx.lineWidth=2; ctx.setLineDash([7,4]);
-    ctx.strokeRect(1, H*0.05+1, W*0.28-2, H*0.9-2);
-    ctx.restore();
-  }
-  if(rightInv){
-    ctx.save();
-    ctx.globalAlpha = 0.16; ctx.fillStyle='rgb(255,109,0)';
-    ctx.fillRect(W*0.72, H*0.05, W*0.28, H*0.9);
-    ctx.globalAlpha = 0.55; ctx.strokeStyle='rgb(255,109,0)';
-    ctx.lineWidth=2; ctx.setLineDash([7,4]);
-    ctx.strokeRect(W*0.72+1, H*0.05+1, W*0.28-2, H*0.9-2);
-    ctx.restore();
-  }
-
-  // Draw each detected vehicle
-  allVehicles.forEach(v => {
-    const [x, y, w, h] = v.bbox;
-    const zone = classifyZone(v.bbox, W);
-    const isFront = zone === 'front';
-    const conf = Math.round(v.score * 100);
-
-    // Color by zone and risk
-    let color;
-    if(!isFront){
-      color = '255,109,0'; // orange for lateral
-    } else {
-      color = risk==='danger' ? '255,23,68' : risk==='warn' ? '255,234,0' : '0,230,118';
-    }
-
-    // Box fill
-    ctx.save();
-    ctx.globalAlpha = 0.08;
-    ctx.fillStyle = `rgb(${color})`;
-    ctx.fillRect(x, y, w, h);
-
-    // Box border
-    ctx.globalAlpha = 0.85;
-    ctx.strokeStyle = `rgb(${color})`;
-    ctx.lineWidth = isFront ? 2.5 : 1.8;
-    ctx.setLineDash(isFront ? [] : [5,4]);
-    ctx.strokeRect(x+1, y+1, w-2, h-2);
-
-    // Corner marks on front vehicle
-    if(isFront){
-      ctx.setLineDash([]);
-      ctx.lineWidth = 3;
-      const cs = Math.min(22, w*0.2);
-      [[x,y,1,1],[x+w,y,-1,1],[x,y+h,1,-1],[x+w,y+h,-1,-1]].forEach(([cx,cy,sx,sy])=>{
-        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*cs,cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy+sy*cs); ctx.stroke();
-      });
-    }
-
-    // Label: class + confidence + distance (front only)
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 0.92;
-    const label = isFront
-      ? `${v.class} ${conf}% · ${Math.round(estimateDistance(v.bbox,W,H))}m`
-      : `${v.class} ${conf}%`;
-    const fontSize = Math.max(10, Math.min(14, w * 0.12));
-    ctx.font = `bold ${fontSize}px 'Share Tech Mono',monospace`;
-
-    const tw = ctx.measureText(label).width;
-    const lx = Math.max(0, Math.min(W - tw - 6, x));
-    const ly = y > 20 ? y - 5 : y + h + 14;
-
-    // Label background
-    ctx.globalAlpha = 0.7;
-    ctx.fillStyle = `rgb(${color})`;
-    ctx.fillRect(lx - 3, ly - fontSize, tw + 6, fontSize + 4);
-
-    // Label text
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#030709';
-    ctx.fillText(label, lx, ly);
-
-    ctx.restore();
-  });
-
-  // Distance arc (bottom center) — only when front vehicle detected
-  if(frontVehicles.length > 0){
-    drawDistanceArc(W, H, dist, risk);
-  }
-}
-
-// ── DISTANCE ARC ──
-function drawDistanceArc(W, H, dist, risk){
-  const cx = W/2, cy = H*0.84, r = Math.min(W*0.18, 60);
-  const color = risk==='danger'?'255,23,68': risk==='warn'?'255,234,0':'0,230,118';
-  const fill = Math.max(0, Math.min(1, 1 - dist/50));
-
-  ctx.save();
-  // BG arc
-  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,2*Math.PI);
-  ctx.strokeStyle='rgba(200,240,216,0.07)'; ctx.lineWidth=12; ctx.stroke();
-  // Filled arc
-  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,Math.PI+fill*Math.PI);
-  ctx.strokeStyle=`rgb(${color})`; ctx.lineWidth=12; ctx.lineCap='round';
-  ctx.shadowBlur=14; ctx.shadowColor=`rgb(${color})`; ctx.stroke();
-  // Text
-  ctx.shadowBlur=0; ctx.globalAlpha=0.88;
-  ctx.fillStyle=`rgb(${color})`; ctx.textAlign='center';
-  ctx.font=`bold 13px 'Share Tech Mono',monospace`;
-  ctx.fillText(dist>60?'60+m':`${Math.round(dist)}m`, cx, cy-8);
-  ctx.restore();
-}
-
-// ── CAMERA + MODEL INIT ──
-async function startSystem(){
-  startup.classList.add('hidden');
-  setTimeout(()=>startup.classList.add('gone'), 600);
-  loadingDiv.classList.add('show');
-  ensureAudio();
-
-  // 1. Start camera
-  try {
-    loadMsg.textContent = 'Iniciando cámara...';
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }
-    });
-    video.srcObject = stream;
-
-    await new Promise((resolve, reject) => {
-      if(video.readyState >= 1){ video.play().then(resolve).catch(reject); return; }
-      video.addEventListener('loadedmetadata', ()=> video.play().then(resolve).catch(reject), {once:true});
-    });
-
-    overlayC.width  = video.videoWidth  || window.innerWidth;
-    overlayC.height = video.videoHeight || window.innerHeight;
-
-  } catch(e){
-    console.error('Camera error:', e);
-    loadingDiv.classList.remove('show');
-    noCamera.classList.add('show');
+  if (!inVal || inVal === "0") {
+    document.getElementById('resultMain').innerHTML = '0"';
+    drawTape(0, 0);
     return;
   }
 
-  // 2. Load COCO-SSD model
-  try {
-    loadMsg.textContent = 'Cargando modelo IA...';
-    model = await cocoSsd.load({
-      base: 'lite_mobilenet_v2'   // más rápido en móvil
-    });
-    loadMsg.textContent = '¡Modelo listo!';
-    await new Promise(r=>setTimeout(r,500));
-  } catch(e){
-    console.error('Model load error:', e);
-    loadMsg.textContent = 'Error cargando modelo IA';
-    setStatus('ERROR MODELO','error');
-    await new Promise(r=>setTimeout(r,2000));
-  }
+  const inches  = parseFloat(inVal) || 0;
+  const num     = parseInt(document.getElementById('num').value) || 0;
+  const den     = parseInt(document.getElementById('den').value) || 1;
+  const divisor = parseFloat(divVal) || 1;
 
-  // 3. Start detection loop
-  loadingDiv.classList.remove('show');
-  running = true;
-  setStatus('ACTIVO', '');
-  logEvent('Sistema iniciado — TensorFlow COCO-SSD activo', 'var(--safe)');
-  logEvent('Detectando: autos, camiones, motos, buses', 'var(--dim)');
-  requestAnimationFrame(detectFrame);
+  const totalIn = inches + (num / den);
+  const result  = totalIn / divisor;
+  const rounded = Math.round(result * precision) / precision;
+
+  document.getElementById('resultMain').innerHTML = formatInches(rounded, precision);
+  drawTape(totalIn, rounded);
 }
 
-// ── CONTROLS ──
-startBtn.addEventListener('click', ()=>{ startSystem(); });
+function drawTape(orig, res) {
+  const canvas = document.getElementById('tape');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  
+  ctx.fillStyle = '#FFD600';
+  ctx.fillRect(0,0,W,H);
+  
+  const start = Math.max(0, res - 3);
+  const scale = W / 6;
 
-retryBtn.addEventListener('click', ()=>{
-  noCamera.classList.remove('show');
-  startup.classList.remove('hidden','gone');
-});
-
-btnMute.addEventListener('click', ()=>{
-  muted = !muted;
-  btnMute.textContent = muted ? '🔇 Mute' : '🔊 Audio';
-  btnMute.classList.toggle('on', !muted);
-});
-
-btnLanes.addEventListener('click', ()=>{
-  lanesEnabled = !lanesEnabled;
-  btnLanes.textContent = lanesEnabled ? 'Carriles ON' : 'Carriles OFF';
-  btnLanes.classList.toggle('on', lanesEnabled);
-  if(!lanesEnabled){
-    laneLeftBox.classList.remove('invaded'); laneRightBox.classList.remove('invaded');
-    laneLeftTxt.textContent='N/A'; laneRightTxt.textContent='N/A';
+  ctx.fillStyle = '#111';
+  for(let i = Math.floor(start); i <= start + 7; i += 1/16) {
+    let h = 10;
+    if(Number.isInteger(i)) h = 60;
+    else if(Number.isInteger(i*2)) h = 40;
+    else if(Number.isInteger(i*4)) h = 25;
+    
+    const x = (i - start) * scale;
+    if(x >= 0 && x <= W) {
+      ctx.fillRect(x, (H-h)/2, 1.5, h);
+      if(Number.isInteger(i)) {
+        ctx.font = "bold 22px 'Bebas Neue'";
+        ctx.fillText(i, x + 4, H/2 + 20);
+      }
+    }
   }
-  logEvent(lanesEnabled ? 'Detección carriles ON' : 'Detección carriles OFF');
+  
+  const rx = (res - start) * scale;
+  ctx.fillStyle = '#E02020';
+  ctx.fillRect(rx-2, 0, 4, H);
+}
+
+window.onload = () => {
+  document.getElementById('calcForm').reset();
+  calculate();
+};
+
+['inches','num','den','divisor'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calculate);
 });
 
-sensSlider.addEventListener('input', e=>{
-  sensitivity = parseInt(e.target.value);
-  logEvent(`Sensibilidad: ${sensitivity}/10`);
-});
-
-window.addEventListener('resize', ()=>{
-  if(video.videoWidth){ overlayC.width=video.videoWidth; overlayC.height=video.videoHeight; }
-});
+calculate();
 </script>
 </body>
 </html>
+
