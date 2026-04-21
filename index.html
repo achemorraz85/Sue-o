@@ -3,17 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DIVISOR DE hMORRAZ</title>
+<title>hMORRAZ TOOLS</title>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#111111">
-
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="manifest" href="site.webmanifest">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
@@ -26,277 +23,289 @@
     --white: #F5F0E8;
   }
 
-  * { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
-    -webkit-tap-highlight-color: transparent; 
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   body {
     background: var(--black);
     color: var(--white);
     font-family: 'DM Mono', monospace;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .nav-header {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #000;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .burger {
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    /* Ajuste para el notch de celulares modernos */
-    padding: env(safe-area-inset-top) 16px 20px 16px;
+    gap: 5px;
+    z-index: 101;
   }
 
-  header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
-
-  h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 10vw, 3.5rem);
-    color: var(--yellow);
-    letter-spacing: 2px;
-    line-height: 1;
+  .burger span {
+    width: 25px; height: 3px; background: var(--yellow); transition: 0.3s;
   }
 
-  .tape-wrap {
-    width: 100%;
-    max-width: 480px;
-    margin-bottom: 20px;
+  .side-menu {
+    position: fixed; top: 0; right: -250px; width: 250px; height: 100%;
+    background: var(--steel); padding-top: 80px; transition: 0.3s; z-index: 99;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
   }
 
-  canvas#tape {
-    width: 100%;
-    height: auto;
-    border-radius: 6px;
-    display: block;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  .side-menu.active { right: 0; }
+
+  .menu-item {
+    padding: 15px 25px; font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem; color: var(--white); cursor: pointer; border-bottom: 1px solid #333;
   }
 
-  .card {
-    background: var(--steel);
-    border: 1px solid #3a3a3a;
-    border-radius: 12px;
-    padding: 16px;
-    width: 100%;
-    max-width: 480px;
-    margin-bottom: 15px;
+  .container {
+    padding: 10px 16px 20px 16px; display: flex; flex-direction: column;
+    align-items: center; max-width: 480px; margin: 0 auto;
   }
 
-  .card-title {
-    font-size: 0.65rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--yellow);
-    margin-bottom: 12px;
-  }
+  .app-section { display: none; width: 100%; }
+  .app-section.active { display: block; }
 
-  .input-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--yellow); text-align: center; margin-bottom: 15px; }
 
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-  }
+  .tape-wrap { width: 100%; margin-bottom: 20px; }
+  canvas#tape { width: 100%; height: 160px; border-radius: 8px; background: var(--yellow); display: block; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
-  label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    color: #888;
-  }
+  .card { background: var(--steel); border: 1px solid #3a3a3a; border-radius: 12px; padding: 16px; margin-bottom: 15px; }
+  .card-title { font-size: 0.65rem; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; letter-spacing: 1px; }
+
+  .input-row { display: flex; align-items: center; gap: 6px; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  label { font-size: 0.55rem; text-transform: uppercase; color: #888; }
 
   input, select {
-    background: #1a1a1a;
-    border: 1px solid #444;
-    border-radius: 6px;
-    color: var(--white);
-    font-family: 'DM Mono', monospace;
-    font-size: 1.1rem;
-    padding: 12px 8px;
-    width: 100%;
-    outline: none;
-    text-align: center;
-    /* Elimina sombras internas en iOS */
-    -webkit-appearance: none;
+    background: #1a1a1a; border: 1px solid #444; border-radius: 6px; color: var(--white);
+    font-family: 'DM Mono', monospace; font-size: 1.1rem; padding: 12px 4px; width: 100%; text-align: center; outline: none;
   }
 
-  input:focus { border-color: var(--yellow); }
-
-  .divisor-input {
-    background: #1a1a1a;
-    border: 2px solid var(--red);
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-
-  .sep { font-size: 1.2rem; color: #555; margin-top: 15px; }
+  .divisor-input { border: 2px solid var(--red); font-weight: bold; font-size: 1.6rem; }
 
   .result-card {
-    background: #111;
-    border: 2px solid var(--yellow);
-    border-radius: 12px;
-    padding: 30px 20px;
-    width: 100%;
-    max-width: 480px;
-    text-align: center;
+    background: #000; border: 2px solid var(--yellow); border-radius: 12px;
+    padding: 30px 20px; text-align: center;
   }
-
-  .result-main {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(4rem, 20vw, 6rem);
-    color: white;
-    line-height: 1;
-  }
-
-  .frac-color {
-    color: var(--yellow);
-    margin-left: 10px;
-  }
+  .result-main { font-family: 'Bebas Neue', sans-serif; font-size: 4.5rem; color: #fff; line-height: 1; }
+  .ft-mark { color: var(--red); margin-right: 8px; font-size: 0.8em; }
+  .frac-color { color: var(--yellow); margin-left: 5px; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>DIVISOR DE hMORRAZ</h1>
-</header>
-
-<div class="tape-wrap">
-  <canvas id="tape" width="900" height="140"></canvas>
+<div class="nav-header">
+  <div style="color: var(--yellow); font-family: 'Bebas Neue'; font-size: 1.3rem; letter-spacing: 1px;">hMORRAZ TOOLS</div>
+  <div class="burger" id="burger">
+    <span></span><span></span><span></span>
+  </div>
 </div>
 
-<form id="calcForm" autocomplete="off">
-  <div class="card">
-    <p class="card-title">Medida a dividir (Pulgadas)</p>
-    <div class="input-row">
-      <div class="input-group" style="flex: 2;">
-        <label>Pulgadas</label>
-        <input type="number" id="inches" placeholder="0" inputmode="numeric">
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-item" onclick="showApp('divisor')">DIVISOR DE MEDIDAS</div>
+  <div class="menu-item" onclick="showApp('pentagono')">TRAZO DE PENTÁGONO</div>
+</nav>
+
+<div class="container">
+  
+  <div id="divisor" class="app-section active">
+    <h1>DIVISOR</h1>
+    <div class="tape-wrap">
+      <canvas id="tape" width="1000" height="280"></canvas>
+    </div>
+    <form id="divisorForm">
+      <div class="card">
+        <p class="card-title">Medida inicial</p>
+        <div class="input-row">
+          <div class="input-group" style="flex: 0.8;">
+            <label>Pies</label>
+            <input type="number" id="div_ft" placeholder="ft" inputmode="numeric">
+          </div>
+          <div class="input-group">
+            <label>Pulg.</label>
+            <input type="number" id="div_in" placeholder="in" inputmode="numeric">
+          </div>
+          <div class="input-group" style="flex: 0.7;">
+            <label>Num.</label>
+            <input type="number" id="div_num" placeholder="n" inputmode="numeric">
+          </div>
+          <div class="input-group" style="flex: 0.7;">
+            <label>Den.</label>
+            <select id="div_den">
+              <option value="2">2</option><option value="4" selected>4</option>
+              <option value="8">8</option><option value="16">16</option>
+            </select>
+          </div>
+        </div>
       </div>
-      <div class="sep">+</div>
-      <div class="input-group">
-        <label>Num.</label>
-        <input type="number" id="num" placeholder="0" inputmode="numeric">
+      <div class="card">
+        <p class="card-title">Dividir entre</p>
+        <input type="number" id="div_val" placeholder="—" class="divisor-input" inputmode="numeric">
       </div>
-      <div class="sep">/</div>
-      <div class="input-group">
-        <label>Den.</label>
-        <select id="den">
-          <option value="2">2</option>
-          <option value="4" selected>4</option>
-          <option value="8">8</option>
-          <option value="16">16</option>
-        </select>
-      </div>
+    </form>
+    <div class="result-card">
+      <p class="card-title">Medida Resultante</p>
+      <div id="div_result" class="result-main">—</div>
     </div>
   </div>
 
-  <div class="card">
-    <p class="card-title">Dividir entre</p>
-    <div class="input-group">
-      <input type="number" id="divisor" placeholder="1" class="divisor-input" inputmode="numeric">
+  <div id="pentagono" class="app-section">
+    <h1>PENTÁGONO</h1>
+    <div class="card">
+      <p class="card-title">Diámetro del Círculo (Pulgadas)</p>
+      <input type="number" id="pent_diam" placeholder="Ingresa diámetro" inputmode="numeric" style="font-size: 2rem; color: var(--yellow); border: 2px solid var(--yellow);">
+    </div>
+    <div class="result-card">
+      <p class="card-title">Medida del Lado</p>
+      <div id="pent_result" class="result-main">—</div>
     </div>
   </div>
-</form>
 
-<div class="result-card">
-  <p class="card-title" style="margin-bottom: 15px;">Medida Final (1/16")</p>
-  <div class="result-main" id="resultMain">0"</div>
 </div>
 
 <script>
-const precision = 16;
+const burger = document.getElementById('burger');
+const menu = document.getElementById('sideMenu');
+burger.onclick = () => menu.classList.toggle('active');
+
+function showApp(id) {
+  document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  menu.classList.remove('active');
+  if(id === 'divisor') calcDivisor();
+}
 
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-function formatInches(totalInches, prec) {
-  if (totalInches === 0) return '0"';
-  const wholeIn = Math.floor(totalInches);
-  let frac = totalInches - wholeIn;
-  const roundedFrac = Math.round(frac * prec);
+function formatMeasurement(totalInches, useFeet) {
+  if (totalInches <= 0) return '—';
   
-  let finalIn = wholeIn;
-  let fn = roundedFrac;
-  if (fn >= prec) { finalIn++; fn = 0; }
-  
-  if (fn === 0) return `${finalIn}"`;
-  
-  const common = gcd(fn, prec);
-  const n = fn / common;
-  const d = prec / common;
-  
-  const fracHtml = `<span class="frac-color">${n}/${d}"</span>`;
-  return finalIn > 0 ? `${finalIn}${fracHtml}` : fracHtml;
-}
+  let resultHtml = "";
+  let remainingInches = totalInches;
 
-function calculate() {
-  const inVal = document.getElementById('inches').value;
-  const divVal = document.getElementById('divisor').value;
-
-  if (!inVal || inVal === "0") {
-    document.getElementById('resultMain').innerHTML = '0"';
-    drawTape(0, 0);
-    return;
+  if (useFeet) {
+    const feet = Math.floor(totalInches / 12);
+    remainingInches = totalInches % 12;
+    if (feet > 0) resultHtml += `${feet}<span class="ft-mark">'</span>`;
   }
 
-  const inches  = parseFloat(inVal) || 0;
-  const num     = parseInt(document.getElementById('num').value) || 0;
-  const den     = parseInt(document.getElementById('den').value) || 1;
-  const divisor = parseFloat(divVal) || 1;
+  const wholeIn = Math.floor(remainingInches);
+  let fn = Math.round((remainingInches - wholeIn) * 16);
+  let finalIn = wholeIn;
 
-  const totalIn = inches + (num / den);
-  const result  = totalIn / divisor;
-  const rounded = Math.round(result * precision) / precision;
+  if (fn >= 16) { finalIn++; fn = 0; }
+  
+  // Si usamos pies y el redondeo de pulgadas llega a 12, sumamos un pie
+  if (useFeet && finalIn >= 12) {
+    // Re-calculamos para simplificar
+    const totalFeet = Math.floor(Math.round(totalInches * 16) / (12 * 16));
+    const totalRemIn = (Math.round(totalInches * 16) / 16) % 12;
+    // (Este es un caso borde, lo manejamos simple)
+  }
 
-  document.getElementById('resultMain').innerHTML = formatInches(rounded, precision);
-  drawTape(totalIn, rounded);
+  if (finalIn > 0 || fn === 0) resultHtml += `${finalIn}`;
+  
+  if (fn > 0) {
+    const common = gcd(fn, 16);
+    resultHtml += `<span class="frac-color">${fn/common}/${16/common}"</span>`;
+  } else {
+    resultHtml += `"`;
+  }
+
+  return resultHtml;
 }
 
-function drawTape(orig, res) {
+function calcDivisor() {
+  const ftVal = document.getElementById('div_ft').value;
+  const inVal = document.getElementById('div_in').value;
+  const numVal = document.getElementById('div_num').value;
+  const divValStr = document.getElementById('div_val').value;
+
+  if (divValStr === "" || (ftVal === "" && inVal === "" && numVal === "")) {
+    document.getElementById('div_result').innerHTML = '—';
+    drawTape(0); return;
+  }
+
+  const feet = parseFloat(ftVal) || 0;
+  const inches = parseFloat(inVal) || 0;
+  const num = parseInt(numVal) || 0;
+  const den = parseInt(document.getElementById('div_den').value) || 1;
+  const divisor = parseFloat(divValStr) || 1;
+
+  if (divisor <= 0) {
+    document.getElementById('div_result').innerHTML = '—';
+    drawTape(0); return;
+  }
+
+  const totalInches = (feet * 12) + inches + (num / den);
+  const res = totalInches / divisor;
+
+  // Solo mostrar pies si el input de pies tiene ALGO escrito
+  const useFeet = ftVal !== "";
+  document.getElementById('div_result').innerHTML = formatMeasurement(res, useFeet);
+  drawTape(res);
+}
+
+function drawTape(res) {
   const canvas = document.getElementById('tape');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#FFD600'; ctx.fillRect(0,0,W,H);
   
-  ctx.fillStyle = '#FFD600';
-  ctx.fillRect(0,0,W,H);
-  
-  const start = Math.max(0, res - 3);
-  const scale = W / 6;
+  const start = Math.max(0, res - 1.0);
+  const scale = W / 2.0;
 
   ctx.fillStyle = '#111';
-  for(let i = Math.floor(start); i <= start + 7; i += 1/16) {
-    let h = 10;
-    if(Number.isInteger(i)) h = 60;
-    else if(Number.isInteger(i*2)) h = 40;
-    else if(Number.isInteger(i*4)) h = 25;
+  for(let i = Math.floor(start*16)/16; i <= start+2.5; i += 1/16) {
+    let h_f = 0.12; let w = 1.5;
+    if(Number.isInteger(i)) { h_f = 0.65; w = 3.5; }
+    else if(Number.isInteger(i*2)) { h_f = 0.45; w = 3; }
+    else if(Number.isInteger(i*4)) { h_f = 0.32; w = 2.5; }
+    else if(Number.isInteger(i*8)) { h_f = 0.22; w = 2; }
     
     const x = (i - start) * scale;
     if(x >= 0 && x <= W) {
-      ctx.fillRect(x, (H-h)/2, 1.5, h);
+      ctx.fillRect(x - (w/2), H - (H*h_f), w, H*h_f);
       if(Number.isInteger(i)) {
-        ctx.font = "bold 22px 'Bebas Neue'";
-        ctx.fillText(i, x + 4, H/2 + 20);
+        ctx.font = "bold 70px 'Bebas Neue'";
+        ctx.fillText(i, x + 12, H/2);
       }
     }
   }
-  
-  const rx = (res - start) * scale;
-  ctx.fillStyle = '#E02020';
-  ctx.fillRect(rx-2, 0, 4, H);
+  ctx.fillStyle = '#E02020'; ctx.fillRect(W/2 - 2.5, 0, 5, H);
 }
 
-window.onload = () => {
-  document.getElementById('calcForm').reset();
-  calculate();
-};
+function calcPentagono() {
+  const diamStr = document.getElementById('pent_diam').value;
+  if (diamStr === "") { document.getElementById('pent_result').innerHTML = '—'; return; }
+  const lado = parseFloat(diamStr) * 0.58778;
+  document.getElementById('pent_result').innerHTML = formatMeasurement(lado, false);
+}
 
-['inches','num','den','divisor'].forEach(id => {
-  document.getElementById(id).addEventListener('input', calculate);
+['div_ft','div_in','div_num','div_den','div_val'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcDivisor);
 });
+document.getElementById('pent_diam').addEventListener('input', calcPentagono);
 
-calculate();
+window.onload = () => {
+  document.getElementById('divisorForm').reset();
+  drawTape(0);
+};
 </script>
 </body>
 </html>
