@@ -828,6 +828,220 @@
   }
   .placa-input:focus { border-color: var(--accent); }
   .placa-input::placeholder { color: var(--muted); letter-spacing: 2px; }
+
+  /* ===== SUSCRIPCIONES ===== */
+  .plan-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .plan-card {
+    border-radius: 16px;
+    padding: 18px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .plan-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.07;
+    transition: opacity 0.25s;
+  }
+
+  .plan-card.selected { border-width: 2px; }
+  .plan-card.selected::before { opacity: 0.14; }
+
+  .plan-card.basic { border-color: #4fc3f7; background: rgba(79,195,247,0.06); }
+  .plan-card.basic::before { background: #4fc3f7; }
+  .plan-card.basic.selected { box-shadow: 0 0 20px rgba(79,195,247,0.25); }
+
+  .plan-card.plus { border-color: #7c3aed; background: rgba(124,58,237,0.06); }
+  .plan-card.plus::before { background: #7c3aed; }
+  .plan-card.plus.selected { box-shadow: 0 0 20px rgba(124,58,237,0.25); }
+
+  .plan-card.premium { border-color: #ffb300; background: rgba(255,179,0,0.06); }
+  .plan-card.premium::before { background: #ffb300; }
+  .plan-card.premium.selected { box-shadow: 0 0 20px rgba(255,179,0,0.3); }
+
+  .plan-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .plan-badge.hot { background: rgba(255,23,68,0.2); color: var(--red); border: 1px solid rgba(255,23,68,0.3); }
+  .plan-badge.best { background: rgba(255,179,0,0.2); color: #ffb300; border: 1px solid rgba(255,179,0,0.3); }
+
+  .plan-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .plan-name.basic { color: #4fc3f7; }
+  .plan-name.plus { color: #a78bfa; }
+  .plan-name.premium { color: #ffb300; }
+
+  .plan-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .plan-period {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .plan-features {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .plan-feat {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+  }
+
+  /* Member card in list */
+  .member-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .member-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .member-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .member-plan-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .member-plan-badge.basic { background: rgba(79,195,247,0.15); color: #4fc3f7; border: 1px solid rgba(79,195,247,0.3); }
+  .member-plan-badge.plus { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+  .member-plan-badge.premium { background: rgba(255,179,0,0.15); color: #ffb300; border: 1px solid rgba(255,179,0,0.3); }
+
+  .member-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .member-progress {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .member-progress-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.5s;
+  }
+
+  .member-progress-fill.basic { background: #4fc3f7; }
+  .member-progress-fill.plus { background: #a78bfa; }
+  .member-progress-fill.premium { background: #ffb300; }
+
+  .member-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .member-stat-val {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Usar membresía button */
+  .btn-usar-membresia {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #7c3aed, #4f1da1);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 8px;
+  }
+  .btn-usar-membresia:active { transform: scale(0.98); }
+  .btn-usar-membresia:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .status-dot.active { background: var(--green); }
+  .status-dot.expired { background: var(--red); }
+  .status-dot.expiring { background: var(--yellow); }
+
+  .sub-search {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .sub-search:focus { border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -998,12 +1212,80 @@
       </div>
     </div>
 
+    <!-- SECTION: SUSCRIPCIONES -->
+    <div class="section" id="sec-suscripciones">
+      <div class="section-header">
+        <div class="section-title">Membresías</div>
+        <div class="section-sub" id="subSectionSub">Registrar y usar suscripciones</div>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="filter-bar" style="margin-bottom:16px">
+        <button class="filter-chip active" onclick="setSubTab('nueva',this)">➕ Nueva</button>
+        <button class="filter-chip" onclick="setSubTab('usar',this)">🚗 Usar</button>
+        <button class="filter-chip" onclick="setSubTab('lista',this)">📋 Clientes</button>
+      </div>
+
+      <!-- TAB: NUEVA SUSCRIPCIÓN -->
+      <div id="subTab-nueva">
+        <div class="card-title" style="margin-bottom:12px">Selecciona el Plan</div>
+        <div class="plan-cards" id="planCards"></div>
+
+        <div class="card-title" style="margin-bottom:10px">Datos del Cliente</div>
+        <input class="form-input" id="subClientName" placeholder="Nombre del cliente" style="margin-bottom:10px">
+        <input class="placa-input" id="subClientPlaca" placeholder="PLACA DEL VEHÍCULO" maxlength="8">
+
+        <!-- Pago -->
+        <div class="pago-section" id="subPagoSection" style="display:none">
+          <div class="pago-label">💵 Pago Recibido</div>
+          <div class="pago-input-wrap">
+            <span class="currency-tag" id="subCurrencySymbol">C$</span>
+            <input class="pago-input" id="subPagoInput" type="number" inputmode="decimal" placeholder="0" min="0" step="0.5" oninput="calcSubVuelto()">
+          </div>
+        </div>
+
+        <div class="quick-amounts" id="subQuickAmounts" style="margin-bottom:14px"></div>
+
+        <div class="vuelto-display" id="subVueltoDisplay" style="display:none">
+          <div>
+            <div class="vuelto-label">💚 VUELTO A DEVOLVER</div>
+          </div>
+          <div class="vuelto-value" id="subVueltoValue">—</div>
+        </div>
+
+        <button class="btn-usar-membresia" id="btnRegistrarSub" onclick="registrarSuscripcion()" disabled>
+          🎫 REGISTRAR MEMBRESÍA
+        </button>
+      </div>
+
+      <!-- TAB: USAR SUSCRIPCIÓN -->
+      <div id="subTab-usar" style="display:none">
+        <div class="card-title" style="margin-bottom:10px">Buscar por Placa o Nombre</div>
+        <input class="sub-search" id="usarSearch" placeholder="Buscar placa o nombre..." oninput="renderUsarSub()" autocomplete="off">
+        <div id="usarSubResults"></div>
+      </div>
+
+      <!-- TAB: LISTA -->
+      <div id="subTab-lista" style="display:none">
+        <input class="sub-search" id="listaSearch" placeholder="Buscar cliente..." oninput="renderSubLista()" autocomplete="off">
+        <div class="filter-bar">
+          <button class="filter-chip active" onclick="setSubFilter('todos',this)">Todos</button>
+          <button class="filter-chip" onclick="setSubFilter('activos',this)">Activos</button>
+          <button class="filter-chip" onclick="setSubFilter('vencidos',this)">Vencidos</button>
+        </div>
+        <div id="subListaContent"></div>
+      </div>
+    </div>
+
   </div><!-- end main-content -->
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav" id="bottomNav">
     <button class="nav-item active" onclick="navTo('cobrar',this)">
       <span class="nav-icon">💳</span>Cobrar
+    </button>
+    <button class="nav-item" onclick="navTo('suscripciones',this)">
+      <span class="nav-icon">🎫</span>Membresía
     </button>
     <button class="nav-item" onclick="navTo('historial',this)">
       <span class="nav-icon">📋</span>Historial
@@ -1029,7 +1311,7 @@
 <!-- SUCCESS -->
 <div class="success-overlay" id="successOverlay">
   <div class="success-icon">✓</div>
-  <div class="success-text">¡COBRO REGISTRADO!</div>
+  <div class="success-text" id="successText">¡COBRO REGISTRADO!</div>
   <div class="success-detail" id="successDetail"></div>
 </div>
 
@@ -1286,6 +1568,7 @@ function registrarServicio() {
 
   // Show success
   const curr = getCurrencySymbol();
+  document.getElementById('successText').textContent = '⚡ COBRO REGISTRADO';
   document.getElementById('successDetail').textContent =
     `${record.serviceName} · ${curr}${record.price.toFixed(2)} · Vuelto: ${curr}${record.change.toFixed(2)}`;
   const overlay = document.getElementById('successOverlay');
@@ -1471,10 +1754,57 @@ function renderUsersConfig() {
         <div class="emp-role">${u.role === 'admin' ? '🔐 Admin' : '👷 Operador'} · PIN: ${'•'.repeat(u.pin.length)}</div>
       </div>
       <div style="display:flex;gap:6px">
+        <button onclick="editUser(${u.id})" style="background:none;border:1px solid var(--border);color:var(--muted);padding:5px 8px;border-radius:8px;cursor:pointer;font-size:13px">✏️</button>
         <button onclick="deleteUser(${u.id})" style="background:none;border:1px solid rgba(255,23,68,0.3);color:var(--red);padding:5px 8px;border-radius:8px;cursor:pointer;font-size:13px">🗑</button>
       </div>
     </div>
   `).join('');
+}
+
+function editUser(id) {
+  const users = getUsers();
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  openModal('Editar Usuario', `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div class="emp-avatar" style="width:48px;height:48px;font-size:20px;background:${u.color}22;color:${u.color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">${u.name[0]}</div>
+      <div style="font-size:13px;color:var(--muted)">ID #${u.id}</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre completo</label>
+      <input class="form-input" id="m-euName" value="${u.name}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nuevo PIN (dejar vacío = no cambiar)</label>
+      <input class="form-input" id="m-euPin" type="password" inputmode="numeric" placeholder="••••  (opcional)" maxlength="6">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rol</label>
+      <select class="form-input" id="m-euRole">
+        <option value="employee" ${u.role==='employee'?'selected':''}>👷 Operador</option>
+        <option value="admin" ${u.role==='admin'?'selected':''}>🔐 Admin</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveEditUser(${id})">GUARDAR CAMBIOS</button>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;">PIN actual: ${'•'.repeat(u.pin.length)}</div>
+  `);
+}
+
+function saveEditUser(id) {
+  const users = getUsers();
+  const idx = users.findIndex(u => u.id === id);
+  if (idx < 0) return;
+  const name = document.getElementById('m-euName').value.trim();
+  const pin  = document.getElementById('m-euPin').value.trim();
+  const role = document.getElementById('m-euRole').value;
+  if (!name) { alert('El nombre no puede estar vacío'); return; }
+  if (pin && pin.length < 4) { alert('El PIN debe tener mínimo 4 dígitos'); return; }
+  users[idx].name = name;
+  users[idx].role = role;
+  if (pin) users[idx].pin = pin;
+  setData('cw_users', users);
+  document.getElementById('modal').classList.remove('open');
+  renderUsersConfig();
 }
 
 // ===== MODAL =====
@@ -1625,8 +1955,415 @@ function navTo(section, el) {
   if (section === 'config') renderConfig();
 }
 
-// Init login tab
-setRole('employee');
+// ===== SUBSCRIPTION PLANS =====
+const SUBSCRIPTION_PLANS = [
+  {
+    id: 'basic',
+    name: 'Básico',
+    cls: 'basic',
+    icon: '💧',
+    price: 350,
+    color: '#4fc3f7',
+    features: ['Lavado Exterior Ilimitado', '1 vez por día', 'Válido 30 días'],
+    badge: null,
+    allowedServices: ['Lavado Exterior', 'Lavado Express'],
+  },
+  {
+    id: 'basic_plus',
+    name: 'Basic Plus',
+    cls: 'plus',
+    icon: '✨',
+    price: 550,
+    color: '#a78bfa',
+    features: ['Exterior + Interior Ilimitado', '1 vez por día', 'Válido 30 días'],
+    badge: { text: '+ POPULAR', cls: 'hot' },
+    allowedServices: ['Lavado Exterior', 'Lavado Express', 'Lavado Completo', 'Detallado Interior'],
+  },
+  {
+    id: 'plus',
+    name: 'Plus',
+    cls: 'premium',
+    icon: '👑',
+    price: 800,
+    color: '#ffb300',
+    features: ['Todo Incluido Ilimitado', 'Encerado Mensual', '1 vez por día', 'Válido 30 días'],
+    badge: { text: '⭐ PREMIUM', cls: 'best' },
+    allowedServices: null, // all services
+  },
+];
+
+let selectedPlan = null;
+let currentSubTab = 'nueva';
+let currentSubFilter = 'todos';
+
+function getSubscriptions() { return getData('cw_subscriptions', []); }
+function getSubUses() { return getData('cw_sub_uses', []); }
+
+// ===== RENDER PLANS =====
+function renderPlanCards() {
+  const curr = getCurrencySymbol();
+  document.getElementById('planCards').innerHTML = SUBSCRIPTION_PLANS.map(p => `
+    <div class="plan-card ${p.cls}${selectedPlan?.id===p.id?' selected':''}" onclick="selectPlan('${p.id}')">
+      ${p.badge ? `<span class="plan-badge ${p.badge.cls}">${p.badge.text}</span>` : ''}
+      <div class="plan-name ${p.cls}">${p.icon} ${p.name}</div>
+      <div class="plan-price" style="color:${p.color}">${curr}${p.price}<span class="plan-period">/mes</span></div>
+      <div class="plan-features">
+        ${p.features.map(f => `<span class="plan-feat">${f}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectPlan(id) {
+  selectedPlan = SUBSCRIPTION_PLANS.find(p => p.id === id);
+  renderPlanCards();
+  updateSubPago();
+}
+
+function updateSubPago() {
+  const hasPlan = !!selectedPlan;
+  document.getElementById('subPagoSection').style.display = hasPlan ? '' : 'none';
+  document.getElementById('subVueltoDisplay').style.display = hasPlan ? '' : 'none';
+  document.getElementById('subCurrencySymbol').textContent = getCurrencySymbol();
+  renderSubQuickAmounts();
+  calcSubVuelto();
+}
+
+function renderSubQuickAmounts() {
+  if (!selectedPlan) { document.getElementById('subQuickAmounts').innerHTML = ''; return; }
+  const curr = getCurrencySymbol();
+  const p = selectedPlan.price;
+  const amounts = [p, Math.ceil(p/100)*100, Math.ceil(p/500)*500].filter((v,i,a)=>a.indexOf(v)===i);
+  document.getElementById('subQuickAmounts').innerHTML = amounts.map(a =>
+    `<button class="quick-btn" onclick="setSubQuickAmount(${a})">${curr}${a}</button>`
+  ).join('');
+}
+
+function setSubQuickAmount(a) {
+  document.getElementById('subPagoInput').value = a;
+  calcSubVuelto();
+}
+
+function calcSubVuelto() {
+  if (!selectedPlan) return;
+  const pago = parseFloat(document.getElementById('subPagoInput').value) || 0;
+  const total = selectedPlan.price;
+  const curr = getCurrencySymbol();
+  const display = document.getElementById('subVueltoDisplay');
+  const valEl = document.getElementById('subVueltoValue');
+  const btn = document.getElementById('btnRegistrarSub');
+
+  if (pago <= 0) { valEl.textContent = '—'; btn.disabled = true; return; }
+
+  const vuelto = pago - total;
+  if (vuelto < 0) {
+    display.className = 'vuelto-display error';
+    display.querySelector('.vuelto-label').textContent = '⚠️ PAGO INSUFICIENTE';
+    valEl.textContent = `${curr}${Math.abs(vuelto).toFixed(2)}`;
+    btn.disabled = true;
+  } else {
+    display.className = 'vuelto-display';
+    display.querySelector('.vuelto-label').textContent = '💚 VUELTO A DEVOLVER';
+    valEl.textContent = `${curr}${vuelto.toFixed(2)}`;
+    btn.disabled = false;
+  }
+}
+
+// ===== REGISTER SUBSCRIPTION =====
+function registrarSuscripcion() {
+  if (!selectedPlan) return;
+  const name = document.getElementById('subClientName').value.trim();
+  const placa = document.getElementById('subClientPlaca').value.trim().toUpperCase();
+  const pago = parseFloat(document.getElementById('subPagoInput').value) || 0;
+
+  if (!name) { alert('Ingresa el nombre del cliente'); return; }
+  if (!placa) { alert('Ingresa la placa del vehículo'); return; }
+  if (pago < selectedPlan.price) return;
+
+  const now = new Date();
+  const expiry = new Date(now);
+  expiry.setDate(expiry.getDate() + 30);
+
+  const sub = {
+    id: Date.now(),
+    clientName: name,
+    placa,
+    planId: selectedPlan.id,
+    planName: selectedPlan.name,
+    planCls: selectedPlan.cls,
+    planColor: selectedPlan.color,
+    price: selectedPlan.price,
+    paid: pago,
+    change: pago - selectedPlan.price,
+    startDate: now.toISOString(),
+    expiryDate: expiry.toISOString(),
+    employeeId: currentUser.id,
+    employee: currentUser.name,
+    currency: getCurrency(),
+    usesCount: 0,
+  };
+
+  const subs = getSubscriptions();
+  // Renew if same placa + same plan exists
+  const existIdx = subs.findIndex(s => s.placa === placa && s.planId === selectedPlan.id);
+  if (existIdx >= 0) {
+    if (!confirm(`${name} ya tiene plan ${selectedPlan.name}. ¿Renovar membresía?`)) return;
+    subs[existIdx] = { ...subs[existIdx], ...sub, id: subs[existIdx].id, usesCount: subs[existIdx].usesCount };
+    setData('cw_subscriptions', subs);
+  } else {
+    subs.unshift(sub);
+    setData('cw_subscriptions', subs);
+  }
+
+  // Show success
+  const curr = getCurrencySymbol();
+  document.getElementById('successText').textContent = '🎫 MEMBRESÍA REGISTRADA';
+  document.getElementById('successDetail').textContent =
+    `${name} · Plan ${selectedPlan.name} · ${curr}${selectedPlan.price} · Vuelto: ${curr}${sub.change.toFixed(2)}`;
+  const overlay = document.getElementById('successOverlay');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    // Reset
+    selectedPlan = null;
+    document.getElementById('subClientName').value = '';
+    document.getElementById('subClientPlaca').value = '';
+    document.getElementById('subPagoInput').value = '';
+    renderPlanCards();
+    updateSubPago();
+    if (currentRole === 'admin') renderDashboard();
+  }, 1800);
+}
+
+// ===== USE SUBSCRIPTION =====
+function renderUsarSub() {
+  const q = document.getElementById('usarSearch').value.trim().toLowerCase();
+  const subs = getSubscriptions();
+  const results = document.getElementById('usarSubResults');
+
+  if (!q) { results.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Escribe placa o nombre</div></div>'; return; }
+
+  const found = subs.filter(s =>
+    s.placa.toLowerCase().includes(q) || s.clientName.toLowerCase().includes(q)
+  );
+
+  if (!found.length) {
+    results.innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">No se encontró membresía</div></div>';
+    return;
+  }
+
+  results.innerHTML = found.map(s => {
+    const status = getSubStatus(s);
+    return `
+    <div class="member-card">
+      <div class="member-header">
+        <div>
+          <div class="member-name">${s.clientName}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--muted)">${s.placa}</div>
+        </div>
+        <span class="member-plan-badge ${s.planCls}">${s.planName}</span>
+      </div>
+      <div class="member-meta">
+        <span><span class="status-dot ${status.cls}"></span>${status.label}</span>
+        <span>Usos: <strong style="color:var(--text)">${s.usesCount}</strong></span>
+        <span>Vence: <strong style="color:var(--text)">${fmtDate(s.expiryDate)}</strong></span>
+      </div>
+      ${status.active
+        ? `<button onclick="usarMembresia(${s.id})" style="width:100%;padding:11px;background:linear-gradient(135deg,${s.planColor}22,${s.planColor}11);border:1px solid ${s.planColor}55;border-radius:10px;color:${s.planColor};font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;">
+            ✅ REGISTRAR LAVADO
+          </button>`
+        : `<div style="text-align:center;padding:10px;font-size:13px;color:var(--red)">⚠️ Membresía vencida o usada hoy</div>`
+      }
+    </div>`;
+  }).join('');
+}
+
+function getSubStatus(sub) {
+  const now = new Date();
+  const expiry = new Date(sub.expiryDate);
+  const daysLeft = Math.ceil((expiry - now) / (1000*60*60*24));
+
+  if (daysLeft <= 0) return { cls: 'expired', label: 'Vencida', active: false };
+
+  // Check if used today
+  const uses = getSubUses();
+  const todayUse = uses.find(u => u.subId === sub.id && new Date(u.timestamp).toDateString() === now.toDateString());
+  if (todayUse) return { cls: 'expiring', label: `Usada hoy · ${daysLeft}d restantes`, active: false };
+
+  if (daysLeft <= 5) return { cls: 'expiring', label: `⚠️ Vence en ${daysLeft} días`, active: true };
+  return { cls: 'active', label: `Activa · ${daysLeft} días restantes`, active: true };
+}
+
+function usarMembresia(subId) {
+  const subs = getSubscriptions();
+  const idx = subs.findIndex(s => s.id === subId);
+  if (idx < 0) return;
+  const sub = subs[idx];
+
+  // Double-check not used today
+  const uses = getSubUses();
+  const now = new Date();
+  const todayUse = uses.find(u => u.subId === subId && new Date(u.timestamp).toDateString() === now.toDateString());
+  if (todayUse) { alert('Este cliente ya usó su membresía hoy.'); return; }
+
+  // Register use
+  const use = {
+    id: Date.now(),
+    subId,
+    clientName: sub.clientName,
+    placa: sub.placa,
+    planName: sub.planName,
+    planCls: sub.planCls,
+    employee: currentUser.name,
+    employeeId: currentUser.id,
+    timestamp: now.toISOString(),
+  };
+
+  uses.unshift(use);
+  setData('cw_sub_uses', uses);
+
+  subs[idx].usesCount = (subs[idx].usesCount || 0) + 1;
+  setData('cw_subscriptions', subs);
+
+  document.getElementById('successText').textContent = '🚗 LAVADO REGISTRADO';
+  document.getElementById('successDetail').textContent = `${sub.clientName} · ${sub.placa} · Plan ${sub.planName}`;
+  const overlay = document.getElementById('successOverlay');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    document.getElementById('usarSearch').value = '';
+    renderUsarSub();
+    if (currentRole === 'admin') renderDashboard();
+  }, 1600);
+}
+
+// ===== LIST =====
+function setSubFilter(f, el) {
+  currentSubFilter = f;
+  document.querySelectorAll('#subTab-lista .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderSubLista();
+}
+
+function renderSubLista() {
+  const q = (document.getElementById('listaSearch')?.value || '').trim().toLowerCase();
+  let subs = getSubscriptions();
+
+  if (q) subs = subs.filter(s => s.clientName.toLowerCase().includes(q) || s.placa.toLowerCase().includes(q));
+
+  if (currentSubFilter === 'activos') subs = subs.filter(s => new Date(s.expiryDate) > new Date());
+  if (currentSubFilter === 'vencidos') subs = subs.filter(s => new Date(s.expiryDate) <= new Date());
+
+  // Employee only sees their registrations
+  if (currentRole === 'employee') subs = subs.filter(s => s.employeeId === currentUser.id || s.employee === currentUser.name);
+
+  const content = document.getElementById('subListaContent');
+  if (!subs.length) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">🎫</div><div class="empty-text">Sin membresías registradas</div></div>';
+    return;
+  }
+
+  const curr = getCurrencySymbol();
+  content.innerHTML = subs.map(s => {
+    const status = getSubStatus(s);
+    const start = fmtDate(s.startDate);
+    const expiry = fmtDate(s.expiryDate);
+    const daysLeft = Math.max(0, Math.ceil((new Date(s.expiryDate) - new Date()) / (1000*60*60*24)));
+    const pct = Math.min(100, Math.max(0, 100 - (daysLeft/30*100)));
+    return `
+    <div class="member-card">
+      <div class="member-header">
+        <div>
+          <div class="member-name">${s.clientName}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;color:var(--muted)">${s.placa}</div>
+        </div>
+        <span class="member-plan-badge ${s.planCls}">${s.planName}</span>
+      </div>
+      <div class="member-meta">
+        <span><span class="status-dot ${status.cls}"></span>${status.label}</span>
+        ${currentRole==='admin' ? `<span>Por: ${s.employee.split(' ')[0]}</span>` : ''}
+      </div>
+      <div class="member-progress">
+        <div class="member-progress-fill ${s.planCls}" style="width:${pct}%"></div>
+      </div>
+      <div class="member-stats">
+        <span>Inicio: <span class="member-stat-val">${start}</span></span>
+        <span>Usos: <span class="member-stat-val">${s.usesCount}</span></span>
+        <span>${currentRole==='admin' ? `${curr}${s.price}` : `Vence: <span class="member-stat-val">${expiry}</span>`}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== SUB TABS =====
+function setSubTab(tab, el) {
+  currentSubTab = tab;
+  document.querySelectorAll('#sec-suscripciones .filter-bar:first-of-type .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  ['nueva','usar','lista'].forEach(t => {
+    document.getElementById('subTab-'+t).style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'usar') renderUsarSub();
+  if (tab === 'lista') renderSubLista();
+}
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('es', {day:'2-digit',month:'short',year:'2-digit'});
+}
+
+// Patch dashboard to include subscriptions
+const _origRenderDashboard = renderDashboard;
+renderDashboard = function() {
+  _origRenderDashboard();
+  // Add sub stats to dashboard
+  const subs = getSubscriptions();
+  const activeSubs = subs.filter(s => new Date(s.expiryDate) > new Date());
+  const subRevenue = subs.reduce((a,s) => a+s.price, 0);
+  const curr = getCurrencySymbol();
+
+  // Append to stats grid
+  const grid = document.getElementById('statsGrid');
+  const existing = grid.innerHTML;
+  grid.innerHTML = existing + `
+    <div class="stat-card cyan" style="border-top-color:var(--accent2)">
+      <div class="stat-value" style="color:#a78bfa">${activeSubs.length}</div>
+      <div class="stat-label">Membresías Activas</div>
+    </div>
+    <div class="stat-card green" style="border-top-color:#ffb300">
+      <div class="stat-value" style="color:#ffb300">${curr}${subRevenue.toFixed(0)}</div>
+      <div class="stat-label">Ingreso Membresías</div>
+    </div>
+  `;
+};
+
+// Patch initApp
+const _origInitApp = initApp;
+initApp = function() {
+  _origInitApp();
+  renderPlanCards();
+  updateSubPago();
+  document.getElementById('subCurrencySymbol').textContent = getCurrencySymbol();
+};
+
+// Patch navTo to handle suscripciones
+const _origNavTo = navTo;
+navTo = function(section, el) {
+  _origNavTo(section, el);
+  if (section === 'suscripciones') {
+    renderPlanCards();
+    updateSubPago();
+  }
+};
+
+// Patch setCurrency
+const _origSetCurrency = setCurrency;
+setCurrency = function(code) {
+  _origSetCurrency(code);
+  document.getElementById('subCurrencySymbol').textContent = getCurrencySymbol();
+  renderSubQuickAmounts();
+  renderPlanCards();
+};
+
 </script>
 </body>
 </html>
