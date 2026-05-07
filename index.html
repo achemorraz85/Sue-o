@@ -2,1660 +2,311 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>CarWash Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>hMORRAZ TOOLS</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --surface2: #1a1a28;
-    --border: #2a2a3f;
-    --accent: #00e5ff;
-    --accent2: #7c3aed;
-    --green: #00e676;
-    --red: #ff1744;
-    --yellow: #ffea00;
-    --text: #f0f0ff;
-    --muted: #6b6b8a;
-    --card: #16162a;
+    --yellow: #FFD600;
+    --black: #111111;
+    --steel: #2a2a2a;
+    --red: #E02020;
+    --white: #F5F0E8;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* ===== LOGIN ===== */
-  #loginScreen {
-    min-height: 100vh;
+  .nav-header {
+    width: 100%;
+    padding: 20px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background: radial-gradient(ellipse at 50% 0%, #1a0a3a 0%, #0a0a0f 60%);
-  }
-
-  .logo-wrap {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .logo-icon {
-    width: 72px;
-    height: 72px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    margin: 0 auto 16px;
-    box-shadow: 0 0 40px rgba(0,229,255,0.3);
-  }
-
-  .logo-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 42px;
-    letter-spacing: 4px;
-    background: linear-gradient(135deg, var(--accent), #fff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .logo-sub {
-    color: var(--muted);
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-top: 4px;
-  }
-
-  .login-card {
-    width: 100%;
-    max-width: 360px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 28px;
-  }
-
-  .login-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-
-  .login-tab {
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .login-tab.active {
-    background: linear-gradient(135deg, var(--accent2), #4f1da1);
-    border-color: var(--accent2);
-    color: #fff;
-  }
-
-  .form-group { margin-bottom: 16px; }
-
-  .form-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-  }
-
-  .form-input {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .form-input:focus { border-color: var(--accent); }
-
-  .btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--accent), #00b8d4);
-    border: none;
-    border-radius: 12px;
-    color: #000;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    letter-spacing: 0.5px;
-  }
-
-  .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-
-  /* ===== APP SHELL ===== */
-  #appShell { display: none; flex-direction: column; min-height: 100vh; }
-
-  .topbar {
+    background: #000;
     position: sticky;
     top: 0;
     z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    background: rgba(10,10,15,0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
   }
 
-  .topbar-brand {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 3px;
-    color: var(--accent);
-  }
-
-  .topbar-user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .user-badge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    color: var(--muted);
-  }
-
-  .user-badge.admin { border-color: var(--accent2); color: var(--accent2); }
-  .user-badge.employee { border-color: var(--accent); color: var(--accent); }
-
-  .btn-logout {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 8px;
+  .burger {
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .main-content {
-    flex: 1;
-    padding: 16px;
-    padding-bottom: 90px;
-  }
-
-  /* ===== BOTTOM NAV ===== */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0; right: 0;
-    background: rgba(18,18,26,0.97);
-    backdrop-filter: blur(16px);
-    border-top: 1px solid var(--border);
-    display: flex;
-    padding: 8px 0 4px;
-    z-index: 100;
-  }
-
-  .nav-item {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    background: none;
-    color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 5px;
+    z-index: 101;
   }
 
-  .nav-item.active { color: var(--accent); }
-
-  .nav-icon {
-    font-size: 20px;
-    line-height: 1;
-    transition: transform 0.2s;
+  .burger span {
+    width: 25px; height: 3px; background: var(--yellow); transition: 0.3s;
   }
 
-  .nav-item.active .nav-icon { transform: scale(1.15); }
-
-  /* ===== SECTIONS ===== */
-  .section { display: none; }
-  .section.active { display: block; }
-
-  /* ===== SECTION HEADER ===== */
-  .section-header {
-    margin-bottom: 20px;
+  .side-menu {
+    position: fixed; top: 0; right: -250px; width: 250px; height: 100%;
+    background: var(--steel); padding-top: 80px; transition: 0.3s; z-index: 99;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
   }
 
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 2px;
-    color: var(--text);
+  .side-menu.active { right: 0; }
+
+  .menu-item {
+    padding: 15px 25px; font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem; color: var(--white); cursor: pointer; border-bottom: 1px solid #333;
   }
 
-  .section-sub {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 2px;
+  .container {
+    padding: 10px 16px 20px 16px; display: flex; flex-direction: column;
+    align-items: center; max-width: 480px; margin: 0 auto;
   }
 
-  /* ===== CARDS ===== */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 14px;
+  .app-section { display: none; width: 100%; }
+  .app-section.active { display: block; }
+
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--yellow); text-align: center; margin-bottom: 15px; }
+
+  .tape-wrap { width: 100%; margin-bottom: 20px; }
+  canvas#tape { width: 100%; height: 160px; border-radius: 8px; background: var(--yellow); display: block; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
+  .card { background: var(--steel); border: 1px solid #3a3a3a; border-radius: 12px; padding: 16px; margin-bottom: 15px; }
+  .card-title { font-size: 0.65rem; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; letter-spacing: 1px; }
+
+  .input-row { display: flex; align-items: center; gap: 6px; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  label { font-size: 0.55rem; text-transform: uppercase; color: #888; }
+
+  input, select {
+    background: #1a1a1a; border: 1px solid #444; border-radius: 6px; color: var(--white);
+    font-family: 'DM Mono', monospace; font-size: 1.1rem; padding: 12px 4px; width: 100%; text-align: center; outline: none;
   }
 
-  .card-title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    margin-bottom: 12px;
+  .divisor-input { border: 2px solid var(--red); font-weight: bold; font-size: 1.6rem; }
+
+  .result-card {
+    background: #000; border: 2px solid var(--yellow); border-radius: 12px;
+    padding: 30px 20px; text-align: center;
   }
-
-  /* ===== STATS GRID ===== */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-
-  .stat-card.cyan::before { background: linear-gradient(90deg, var(--accent), transparent); }
-  .stat-card.purple::before { background: linear-gradient(90deg, var(--accent2), transparent); }
-  .stat-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
-  .stat-card.yellow::before { background: linear-gradient(90deg, var(--yellow), transparent); }
-
-  .stat-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    letter-spacing: 1px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    color: var(--muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* ===== COBRO / COBRAR ===== */
-  .service-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .service-btn {
-    background: var(--surface2);
-    border: 2px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 12px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .service-btn.selected {
-    border-color: var(--accent);
-    background: rgba(0,229,255,0.08);
-  }
-
-  .service-btn .s-icon { font-size: 28px; margin-bottom: 6px; }
-  .service-btn .s-name { font-size: 13px; font-weight: 600; color: var(--text); }
-  .service-btn .s-price {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    color: var(--accent);
-    letter-spacing: 1px;
-    margin-top: 2px;
-  }
-
-  .price-display {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .price-total-label { font-size: 13px; color: var(--muted); font-weight: 600; }
-
-  .price-total-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 38px;
-    color: var(--accent);
-    letter-spacing: 2px;
-  }
-
-  .pago-section {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-
-  .pago-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-  }
-
-  .pago-input-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .currency-tag {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: var(--accent2);
-    letter-spacing: 1px;
-    white-space: nowrap;
-  }
-
-  .pago-input {
-    flex: 1;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    padding: 10px 14px;
-    outline: none;
-    width: 100%;
-    letter-spacing: 1px;
-    transition: border-color 0.2s;
-  }
-
-  .pago-input:focus { border-color: var(--accent); }
-
-  .vuelto-display {
-    background: linear-gradient(135deg, rgba(0,230,118,0.12), rgba(0,230,118,0.04));
-    border: 1px solid rgba(0,230,118,0.3);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .vuelto-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--green);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .vuelto-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 42px;
-    color: var(--green);
-    letter-spacing: 2px;
-  }
-
-  .vuelto-display.error {
-    background: linear-gradient(135deg, rgba(255,23,68,0.12), rgba(255,23,68,0.04));
-    border-color: rgba(255,23,68,0.3);
-  }
-
-  .vuelto-display.error .vuelto-label,
-  .vuelto-display.error .vuelto-value { color: var(--red); }
-
-  /* Quick amounts */
-  .quick-amounts {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-  }
-
-  .quick-btn {
-    padding: 8px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-  }
-
-  .quick-btn:active { background: var(--accent); color: #000; }
-
-  .btn-cobrar {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--green), #00c853);
-    border: none;
-    border-radius: 14px;
-    color: #000;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    margin-bottom: 8px;
-  }
-
-  .btn-cobrar:active { transform: scale(0.98); }
-  .btn-cobrar:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* ===== HISTORIAL ===== */
-  .filter-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-
-  .filter-chip {
-    white-space: nowrap;
-    padding: 6px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .filter-chip.active {
-    background: rgba(0,229,255,0.1);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .service-record {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    position: relative;
-  }
-
-  .record-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-    background: var(--surface2);
-  }
-
-  .record-info { flex: 1; min-width: 0; }
-
-  .record-service {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .record-meta {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  .record-amount {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    color: var(--green);
-    letter-spacing: 1px;
-    flex-shrink: 0;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 48px 20px;
-    color: var(--muted);
-  }
-
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-text { font-size: 14px; }
-
-  /* ===== ADMIN SECTIONS ===== */
-  .chart-bar-wrap { margin-top: 8px; }
-
-  .chart-bar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .bar-label {
-    font-size: 12px;
-    color: var(--muted);
-    width: 110px;
-    flex-shrink: 0;
-    font-weight: 500;
-  }
-
-  .bar-track {
-    flex: 1;
-    height: 10px;
-    background: var(--surface2);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .bar-fill {
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.6s ease;
-  }
-
-  .bar-val {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text);
-    width: 40px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  /* ===== MODAL ===== */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    z-index: 200;
-    align-items: flex-end;
-    padding: 0;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal-sheet {
-    background: var(--surface);
-    border-radius: 24px 24px 0 0;
-    border: 1px solid var(--border);
-    border-bottom: none;
-    padding: 24px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .modal-handle {
-    width: 40px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 0 auto 20px;
-  }
-
-  .modal-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
-    color: var(--accent);
-  }
-
-  /* ===== SUCCESS ANIM ===== */
-  .success-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    z-index: 300;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .success-overlay.show { display: flex; }
-
-  .success-icon {
-    width: 88px;
-    height: 88px;
-    background: linear-gradient(135deg, var(--green), #00c853);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 44px;
-    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  }
-
-  @keyframes popIn {
-    from { transform: scale(0.3); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  .success-text {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    letter-spacing: 3px;
-    color: var(--green);
-    text-align: center;
-  }
-
-  .success-detail {
-    font-size: 14px;
-    color: var(--muted);
-    text-align: center;
-  }
-
-  /* Admin only items */
-  .admin-only { display: none; }
-
-  /* ===== EMPLOYEES ===== */
-  .employee-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .employee-row:last-child { border-bottom: none; }
-
-  .emp-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  .emp-info { flex: 1; padding: 0 12px; }
-  .emp-name { font-size: 14px; font-weight: 600; }
-  .emp-role { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .emp-sales {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    color: var(--accent);
-    letter-spacing: 1px;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 14px 0;
-  }
-
-  .tag {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .tag.green { background: rgba(0,230,118,0.15); color: var(--green); }
-  .tag.cyan { background: rgba(0,229,255,0.15); color: var(--accent); }
-  .tag.purple { background: rgba(124,58,237,0.2); color: #a78bfa; }
-  .tag.yellow { background: rgba(255,234,0,0.15); color: var(--yellow); }
-
-  .btn-add {
-    width: 100%;
-    padding: 12px;
-    background: transparent;
-    border: 1px dashed var(--border);
-    border-radius: 12px;
-    color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 10px;
-  }
-
-  .btn-add:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* Placa input */
-  .placa-input {
-    width: 100%;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    outline: none;
-    margin-bottom: 14px;
-    transition: border-color 0.2s;
-  }
-  .placa-input:focus { border-color: var(--accent); }
-  .placa-input::placeholder { color: var(--muted); letter-spacing: 2px; }
+  .result-main { font-family: 'Bebas Neue', sans-serif; font-size: 4.5rem; color: #fff; line-height: 1; }
+  .ft-mark { color: var(--red); margin-right: 8px; font-size: 0.8em; }
+  .frac-color { color: var(--yellow); margin-left: 5px; }
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div class="logo-wrap">
-    <div class="logo-icon">🚗</div>
-    <div class="logo-title">CarWash</div>
-    <div class="logo-sub">Sistema de Gestión</div>
-  </div>
-
-  <div class="login-card">
-    <div class="login-tabs">
-      <button class="login-tab active" onclick="setRole('employee')">👷 Operador</button>
-      <button class="login-tab" onclick="setRole('admin')">🔐 Admin</button>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Usuario</label>
-      <input class="form-input" id="loginUser" type="text" placeholder="Tu nombre o usuario" autocomplete="off">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">PIN / Contraseña</label>
-      <input class="form-input" id="loginPin" type="password" placeholder="••••" inputmode="numeric" maxlength="6">
-    </div>
-
-    <button class="btn-primary" onclick="doLogin()">ENTRAR →</button>
-
-    <div style="margin-top:14px; font-size:11px; color:var(--muted); text-align:center;">
-      Demo: operador PIN <strong style="color:var(--accent)">1234</strong> · admin PIN <strong style="color:var(--accent2)">0000</strong>
-    </div>
+<div class="nav-header">
+  <div style="color: var(--yellow); font-family: 'Bebas Neue'; font-size: 1.3rem; letter-spacing: 1px;">hMORRAZ TOOLS</div>
+  <div class="burger" id="burger">
+    <span></span><span></span><span></span>
   </div>
 </div>
 
-<div id="appShell">
-  <div class="topbar">
-    <div class="topbar-brand">🚗 CARWASH</div>
-    <div class="topbar-user">
-      <span class="user-badge" id="roleBadge">Operador</span>
-      <span id="userName" style="font-size:13px;font-weight:600;color:var(--text)"></span>
-      <button class="btn-logout" onclick="doLogout()">Salir</button>
+<nav class="side-menu" id="sideMenu">
+  <div class="menu-item" onclick="showApp('divisor')">DIVISOR DE MEDIDAS</div>
+  <div class="menu-item" onclick="showApp('pentagono')">TRAZO DE PENTÁGONO</div>
+</nav>
+
+<div class="container">
+  
+  <div id="divisor" class="app-section active">
+    <h1>DIVISOR</h1>
+    <div class="tape-wrap">
+      <canvas id="tape" width="1000" height="280"></canvas>
+    </div>
+    <form id="divisorForm">
+      <div class="card">
+        <p class="card-title">Medida inicial</p>
+        <div class="input-row">
+          <div class="input-group" style="flex: 0.8;">
+            <label>Pies</label>
+            <input type="number" id="div_ft" placeholder="ft" inputmode="numeric">
+          </div>
+          <div class="input-group">
+            <label>Pulg.</label>
+            <input type="number" id="div_in" placeholder="in" inputmode="numeric">
+          </div>
+          <div class="input-group" style="flex: 0.7;">
+            <label>Num.</label>
+            <input type="number" id="div_num" placeholder="n" inputmode="numeric">
+          </div>
+          <div class="input-group" style="flex: 0.7;">
+            <label>Den.</label>
+            <select id="div_den">
+              <option value="2">2</option><option value="4" selected>4</option>
+              <option value="8">8</option><option value="16">16</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <p class="card-title">Dividir entre</p>
+        <input type="number" id="div_val" placeholder="—" class="divisor-input" inputmode="numeric">
+      </div>
+    </form>
+    <div class="result-card">
+      <p class="card-title">Medida Resultante</p>
+      <div id="div_result" class="result-main">—</div>
     </div>
   </div>
 
-  <div class="main-content">
-
-    <div class="section active" id="sec-cobrar">
-      <div class="section-header">
-        <div class="section-title">Registrar Servicio</div>
-        <div class="section-sub">Selecciona servicio y cobra</div>
-      </div>
-
-      <input class="placa-input" id="placaInput" placeholder="PLACA (opcional)" maxlength="8">
-
-      <div class="card-title">Tipo de Servicio</div>
-      <div class="service-grid" id="serviceGrid"></div>
-
-      <div class="price-display">
-        <div>
-          <div class="price-total-label">TOTAL A COBRAR</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="selectedServiceName">Ningún servicio</div>
-        </div>
-        <div class="price-total-value" id="totalDisplay">$0.00</div>
-      </div>
-
-      <div class="pago-section">
-        <div class="pago-label">💵 Pago Recibido</div>
-        <div class="pago-input-wrap">
-          <span class="currency-tag" id="currencySymbol">C$</span>
-          <input class="pago-input" id="pagoInput" type="number" inputmode="decimal" placeholder="0" min="0" step="0.5" oninput="calcVuelto()">
-        </div>
-      </div>
-
-      <div class="quick-amounts" id="quickAmounts"></div>
-
-      <div class="vuelto-display" id="vueltoDisplay">
-        <div>
-          <div class="vuelto-label">💚 VUELTO A DEVOLVER</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Ingresa el monto recibido</div>
-        </div>
-        <div class="vuelto-value" id="vueltoValue">—</div>
-      </div>
-
-      <button class="btn-cobrar" id="btnCobrar" onclick="registrarServicio()" disabled>⚡ REGISTRAR COBRO</button>
+  <div id="pentagono" class="app-section">
+    <h1>PENTÁGONO</h1>
+    <div class="card">
+      <p class="card-title">Diámetro del Círculo (Pulgadas)</p>
+      <input type="number" id="pent_diam" placeholder="Ingresa diámetro" inputmode="numeric" style="font-size: 2rem; color: var(--yellow); border: 2px solid var(--yellow);">
     </div>
-
-    <div class="section" id="sec-historial">
-      <div class="section-header">
-        <div class="section-title">Historial</div>
-        <div class="section-sub" id="histSubtitle">Servicios del día</div>
-      </div>
-
-      <div class="filter-bar" id="filterBar">
-        <button class="filter-chip active" onclick="setFilter('hoy',this)">Hoy</button>
-        <button class="filter-chip" onclick="setFilter('semana',this)">Semana</button>
-        <button class="filter-chip" onclick="setFilter('todo',this)">Todo</button>
-      </div>
-
-      <div id="historialList"></div>
+    <div class="result-card">
+      <p class="card-title">Medida del Lado</p>
+      <div id="pent_result" class="result-main">—</div>
     </div>
-
-    <div class="section admin-only" id="sec-resumen">
-      <div class="section-header">
-        <div class="section-title">Dashboard</div>
-        <div class="section-sub">Resumen de operaciones</div>
-      </div>
-
-      <div class="stats-grid" id="statsGrid"></div>
-
-      <div class="card">
-        <div class="card-title">Ventas por Servicio</div>
-        <div class="chart-bar-wrap" id="chartBars"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Rendimiento por Operador</div>
-        <div id="employeePerf"></div>
-      </div>
-    </div>
-
-    <div class="section admin-only" id="sec-config">
-      <div class="section-header">
-        <div class="section-title">Configuración</div>
-        <div class="section-sub">Servicios, precios y usuarios</div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">💰 Moneda</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="filter-chip" id="curr-NIO" onclick="setCurrency('NIO')">C$ Córdoba</button>
-          <button class="filter-chip" id="curr-USD" onclick="setCurrency('USD')">$ Dólar</button>
-          <button class="filter-chip" id="curr-MXN" onclick="setCurrency('MXN')">$ Peso MX</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🔐 Mi Seguridad (Administrador)</div>
-        <button class="btn-primary" onclick="openChangeMyAdminPinModal()" style="background: var(--surface2); border: 1px solid var(--border); color: var(--yellow); font-size: 13px;">
-          CAMBIAR MI PIN DE ACCESO
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🛠️ Servicios y Precios</div>
-        <div id="serviceConfigList"></div>
-        <button class="btn-add" onclick="openAddService()">+ Agregar servicio</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">👥 Usuarios Operadores</div>
-        <div id="usersConfigList"></div>
-        <button class="btn-add" onclick="openAddUser()">+ Agregar operador</button>
-      </div>
-
-      <div class="card" style="border-color:rgba(255,23,68,0.3);">
-        <div class="card-title" style="color:var(--red)">⚠️ Datos</div>
-        <button onclick="clearAllData()" style="width:100%;padding:10px;background:rgba(255,23,68,0.1);border:1px solid rgba(255,23,68,0.3);border-radius:10px;color:var(--red);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;">
-          Borrar todos los registros
-        </button>
-      </div>
-    </div>
-
-  </div><nav class="bottom-nav" id="bottomNav">
-    <button class="nav-item active" onclick="navTo('cobrar',this)">
-      <span class="nav-icon">💳</span>Cobrar
-    </button>
-    <button class="nav-item" onclick="navTo('historial',this)">
-      <span class="nav-icon">📋</span>Historial
-    </button>
-    <button class="nav-item admin-only" onclick="navTo('resumen',this)">
-      <span class="nav-icon">📊</span>Dashboard
-    </button>
-    <button class="nav-item admin-only" onclick="navTo('config',this)">
-      <span class="nav-icon">⚙️</span>Config
-    </button>
-  </nav>
-</div><div class="modal-overlay" id="modal" onclick="closeModal(event)">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="modalTitle">Modal</div>
-    <div id="modalBody"></div>
   </div>
-</div>
 
-<div class="success-overlay" id="successOverlay">
-  <div class="success-icon">✓</div>
-  <div class="success-text">¡COBRO REGISTRADO!</div>
-  <div class="success-detail" id="successDetail"></div>
 </div>
 
 <script>
-// ===== STATE =====
-let currentUser = null;
-let currentRole = 'employee';
-let selectedService = null;
-let currentFilter = 'hoy';
-let loginRole = 'employee';
+const burger = document.getElementById('burger');
+const menu = document.getElementById('sideMenu');
+burger.onclick = () => menu.classList.toggle('active');
 
-const DEFAULT_SERVICES = [
-  { id:1, name:'Lavado Exterior', icon:'🚿', price:80, color:'#00e5ff' },
-  { id:2, name:'Lavado Completo', icon:'✨', price:150, color:'#7c3aed' },
-  { id:3, name:'Lavado + Encerado', icon:'💎', price:220, color:'#ffea00' },
-  { id:4, name:'Detallado Interior', icon:'🪣', price:180, color:'#00e676' },
-  { id:5, name:'Lavado Express', icon:'⚡', price:50, color:'#ff6b35' },
-  { id:6, name:'Camioneta/Pick-up', icon:'🛻', price:120, color:'#ff1744' },
-];
+function showApp(id) {
+  document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  menu.classList.remove('active');
+  if(id === 'divisor') calcDivisor();
+}
 
-const DEFAULT_USERS = [
-  { id:1, name:'Carlos López', role:'employee', pin:'1234', color:'#00e5ff' },
-  { id:2, name:'Admin', role:'admin', pin:'0000', color:'#7c3aed' },
-];
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-const CURRENCIES = {
-  NIO: { symbol:'C$', name:'Córdoba' },
-  USD: { symbol:'$', name:'Dólar' },
-  MXN: { symbol:'$', name:'Peso MX' },
+function formatMeasurement(totalInches, useFeet) {
+  if (totalInches <= 0) return '—';
+  
+  let resultHtml = "";
+  let remainingInches = totalInches;
+
+  if (useFeet) {
+    const feet = Math.floor(totalInches / 12);
+    remainingInches = totalInches % 12;
+    if (feet > 0) resultHtml += `${feet}<span class="ft-mark">'</span>`;
+  }
+
+  const wholeIn = Math.floor(remainingInches);
+  let fn = Math.round((remainingInches - wholeIn) * 16);
+  let finalIn = wholeIn;
+
+  if (fn >= 16) { finalIn++; fn = 0; }
+  
+  // Si usamos pies y el redondeo de pulgadas llega a 12, sumamos un pie
+  if (useFeet && finalIn >= 12) {
+    // Re-calculamos para simplificar
+    const totalFeet = Math.floor(Math.round(totalInches * 16) / (12 * 16));
+    const totalRemIn = (Math.round(totalInches * 16) / 16) % 12;
+    // (Este es un caso borde, lo manejamos simple)
+  }
+
+  if (finalIn > 0 || fn === 0) resultHtml += `${finalIn}`;
+  
+  if (fn > 0) {
+    const common = gcd(fn, 16);
+    resultHtml += `<span class="frac-color">${fn/common}/${16/common}"</span>`;
+  } else {
+    resultHtml += `"`;
+  }
+
+  return resultHtml;
+}
+
+function calcDivisor() {
+  const ftVal = document.getElementById('div_ft').value;
+  const inVal = document.getElementById('div_in').value;
+  const numVal = document.getElementById('div_num').value;
+  const divValStr = document.getElementById('div_val').value;
+
+  if (divValStr === "" || (ftVal === "" && inVal === "" && numVal === "")) {
+    document.getElementById('div_result').innerHTML = '—';
+    drawTape(0); return;
+  }
+
+  const feet = parseFloat(ftVal) || 0;
+  const inches = parseFloat(inVal) || 0;
+  const num = parseInt(numVal) || 0;
+  const den = parseInt(document.getElementById('div_den').value) || 1;
+  const divisor = parseFloat(divValStr) || 1;
+
+  if (divisor <= 0) {
+    document.getElementById('div_result').innerHTML = '—';
+    drawTape(0); return;
+  }
+
+  const totalInches = (feet * 12) + inches + (num / den);
+  const res = totalInches / divisor;
+
+  // Solo mostrar pies si el input de pies tiene ALGO escrito
+  const useFeet = ftVal !== "";
+  document.getElementById('div_result').innerHTML = formatMeasurement(res, useFeet);
+  drawTape(res);
+}
+
+function drawTape(res) {
+  const canvas = document.getElementById('tape');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#FFD600'; ctx.fillRect(0,0,W,H);
+  
+  const start = Math.max(0, res - 1.0);
+  const scale = W / 2.0;
+
+  ctx.fillStyle = '#111';
+  for(let i = Math.floor(start*16)/16; i <= start+2.5; i += 1/16) {
+    let h_f = 0.12; let w = 1.5;
+    if(Number.isInteger(i)) { h_f = 0.65; w = 3.5; }
+    else if(Number.isInteger(i*2)) { h_f = 0.45; w = 3; }
+    else if(Number.isInteger(i*4)) { h_f = 0.32; w = 2.5; }
+    else if(Number.isInteger(i*8)) { h_f = 0.22; w = 2; }
+    
+    const x = (i - start) * scale;
+    if(x >= 0 && x <= W) {
+      ctx.fillRect(x - (w/2), H - (H*h_f), w, H*h_f);
+      if(Number.isInteger(i)) {
+        ctx.font = "bold 70px 'Bebas Neue'";
+        ctx.fillText(i, x + 12, H/2);
+      }
+    }
+  }
+  ctx.fillStyle = '#E02020'; ctx.fillRect(W/2 - 2.5, 0, 5, H);
+}
+
+function calcPentagono() {
+  const diamStr = document.getElementById('pent_diam').value;
+  if (diamStr === "") { document.getElementById('pent_result').innerHTML = '—'; return; }
+  const lado = parseFloat(diamStr) * 0.58778;
+  document.getElementById('pent_result').innerHTML = formatMeasurement(lado, false);
+}
+
+['div_ft','div_in','div_num','div_den','div_val'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcDivisor);
+});
+document.getElementById('pent_diam').addEventListener('input', calcPentagono);
+
+window.onload = () => {
+  document.getElementById('divisorForm').reset();
+  drawTape(0);
 };
-
-// ===== STORAGE =====
-function getData(key, def) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? def; }
-  catch { return def; }
-}
-function setData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-
-function getServices() { return getData('cw_services', DEFAULT_SERVICES); }
-function getUsers() { return getData('cw_users', DEFAULT_USERS); }
-function getRecords() { return getData('cw_records', []); }
-function getCurrency() { return getData('cw_currency', 'NIO'); }
-
-// ===== LOGIN =====
-function setRole(role) {
-  loginRole = role;
-  document.querySelectorAll('.login-tab').forEach((t,i) => {
-    t.classList.toggle('active', (i===0&&role==='employee')||(i===1&&role==='admin'));
-  });
-}
-
-function doLogin() {
-  const user = document.getElementById('loginUser').value.trim();
-  const pin = document.getElementById('loginPin').value.trim();
-
-  if (!user || !pin) { alert('Ingresa usuario y PIN'); return; }
-
-  const users = getUsers();
-  const found = users.find(u =>
-    u.pin === pin && u.role === loginRole &&
-    (u.name.toLowerCase().includes(user.toLowerCase()) || user.toLowerCase().includes(u.name.toLowerCase().split(' ')[0]))
-  );
-
-  if (found) { loginSuccess(found); }
-  else { alert('PIN o usuario incorrecto'); }
-}
-
-function loginSuccess(user) {
-  currentUser = user;
-  currentRole = user.role;
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appShell').style.display = 'flex';
-  document.getElementById('userName').textContent = user.name.split(' ')[0];
-  const badge = document.getElementById('roleBadge');
-  badge.textContent = currentRole === 'admin' ? '🔐 Admin' : '👷 Operador';
-  badge.className = 'user-badge ' + currentRole;
-
-  // Show admin items
-  document.querySelectorAll('.admin-only').forEach(el => {
-    el.style.display = currentRole === 'admin' ? '' : 'none';
-  });
-
-  initApp();
-  navTo('cobrar', document.querySelector('.nav-item'));
-}
-
-function doLogout() {
-  currentUser = null;
-  selectedService = null;
-  document.getElementById('appShell').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPin').value = '';
-}
-
-// ===== INIT =====
-function initApp() {
-  renderServiceGrid();
-  renderHistory();
-  renderQuickAmounts();
-  updateCurrencySymbol();
-  if (currentRole === 'admin') {
-    renderDashboard();
-    renderConfig();
-    activateCurrencyBtn();
-  }
-}
-
-// ===== CURRENCY =====
-function getCurrencySymbol() { return CURRENCIES[getCurrency()]?.symbol || 'C$'; }
-
-function updateCurrencySymbol() {
-  document.getElementById('currencySymbol').textContent = getCurrencySymbol();
-}
-
-function setCurrency(code) {
-  setData('cw_currency', code);
-  updateCurrencySymbol();
-  renderServiceGrid();
-  renderHistory();
-  renderDashboard();
-  activateCurrencyBtn();
-  calcVuelto();
-}
-
-function activateCurrencyBtn() {
-  const curr = getCurrency();
-  document.querySelectorAll('[id^="curr-"]').forEach(btn => {
-    const c = btn.id.replace('curr-','');
-    btn.classList.toggle('active', c === curr);
-  });
-}
-
-// ===== SERVICE GRID =====
-function renderServiceGrid() {
-  const services = getServices();
-  const curr = getCurrencySymbol();
-  const grid = document.getElementById('serviceGrid');
-  grid.innerHTML = services.map(s => `
-    <button class="service-btn${selectedService?.id===s.id?' selected':''}" onclick="selectService(${s.id})">
-      <div class="s-icon">${s.icon}</div>
-      <div class="s-name">${s.name}</div>
-      <div class="s-price" style="color:${s.color}">${curr}${s.price.toFixed(2)}</div>
-    </button>
-  `).join('');
-}
-
-function selectService(id) {
-  const services = getServices();
-  selectedService = services.find(s => s.id === id);
-  renderServiceGrid();
-  updateTotal();
-  calcVuelto();
-}
-
-function updateTotal() {
-  const curr = getCurrencySymbol();
-  if (selectedService) {
-    document.getElementById('totalDisplay').textContent = `${curr}${selectedService.price.toFixed(2)}`;
-    document.getElementById('selectedServiceName').textContent = selectedService.name;
-  } else {
-    document.getElementById('totalDisplay').textContent = `${curr}0.00`;
-    document.getElementById('selectedServiceName').textContent = 'Ningún servicio';
-  }
-  document.getElementById('btnCobrar').disabled = !selectedService;
-}
-
-// ===== QUICK AMOUNTS =====
-function renderQuickAmounts() {
-  const btns = [50, 100, 150, 200, 500];
-  const curr = getCurrencySymbol();
-  document.getElementById('quickAmounts').innerHTML = btns.map(a =>
-    `<button class="quick-btn" onclick="setQuickAmount(${a})">${curr}${a}</button>`
-  ).join('');
-}
-
-function setQuickAmount(amount) {
-  document.getElementById('pagoInput').value = amount;
-  calcVuelto();
-}
-
-// ===== VUELTO =====
-function calcVuelto() {
-  const pago = parseFloat(document.getElementById('pagoInput').value) || 0;
-  const total = selectedService ? selectedService.price : 0;
-  const curr = getCurrencySymbol();
-  const display = document.getElementById('vueltoDisplay');
-  const valEl = document.getElementById('vueltoValue');
-  const cobrarBtn = document.getElementById('btnCobrar');
-
-  if (!selectedService) {
-    display.className = 'vuelto-display';
-    valEl.textContent = '—';
-    cobrarBtn.disabled = true;
-    return;
-  }
-
-  if (pago <= 0) {
-    display.className = 'vuelto-display';
-    valEl.textContent = '—';
-    cobrarBtn.disabled = true;
-    return;
-  }
-
-  const vuelto = pago - total;
-
-  if (vuelto < 0) {
-    display.className = 'vuelto-display error';
-    document.querySelector('#vueltoDisplay .vuelto-label').textContent = '⚠️ PAGO INSUFICIENTE';
-    valEl.textContent = `${curr}${Math.abs(vuelto).toFixed(2)}`;
-    cobrarBtn.disabled = true;
-  } else {
-    display.className = 'vuelto-display';
-    document.querySelector('#vueltoDisplay .vuelto-label').textContent = '💚 VUELTO A DEVOLVER';
-    valEl.textContent = `${curr}${vuelto.toFixed(2)}`;
-    cobrarBtn.disabled = false;
-  }
-}
-
-// ===== REGISTRAR =====
-function registrarServicio() {
-  if (!selectedService) return;
-  const pago = parseFloat(document.getElementById('pagoInput').value) || 0;
-  if (pago < selectedService.price) return;
-
-  const record = {
-    id: Date.now(),
-    serviceId: selectedService.id,
-    serviceName: selectedService.name,
-    serviceIcon: selectedService.icon,
-    price: selectedService.price,
-    paid: pago,
-    change: pago - selectedService.price,
-    placa: document.getElementById('placaInput').value.toUpperCase().trim(),
-    employee: currentUser.name,
-    employeeId: currentUser.id,
-    timestamp: new Date().toISOString(),
-    currency: getCurrency(),
-  };
-
-  const records = getRecords();
-  records.unshift(record);
-  setData('cw_records', records);
-
-  const curr = getCurrencySymbol();
-  document.getElementById('successDetail').textContent =
-    `${record.serviceName} · ${curr}${record.price.toFixed(2)} · Vuelto: ${curr}${record.change.toFixed(2)}`;
-  const overlay = document.getElementById('successOverlay');
-  overlay.classList.add('show');
-  setTimeout(() => {
-    overlay.classList.remove('show');
-    selectedService = null;
-    document.getElementById('pagoInput').value = '';
-    document.getElementById('placaInput').value = '';
-    renderServiceGrid();
-    updateTotal();
-    calcVuelto();
-    renderHistory();
-    if (currentRole === 'admin') renderDashboard();
-  }, 1800);
-}
-
-// ===== HISTORY =====
-function setFilter(f, el) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderHistory();
-}
-
-function renderHistory() {
-  const records = getRecords();
-  const curr = getCurrencySymbol();
-  const now = new Date();
-
-  let filtered = records;
-  if (currentRole === 'employee') {
-    filtered = filtered.filter(r => r.employeeId === currentUser.id || r.employee === currentUser.name);
-  }
-
-  if (currentFilter === 'hoy') {
-    filtered = filtered.filter(r => {
-      const d = new Date(r.timestamp);
-      return d.toDateString() === now.toDateString();
-    });
-    document.getElementById('histSubtitle').textContent = 'Servicios de hoy';
-  } else if (currentFilter === 'semana') {
-    const weekAgo = new Date(now - 7*24*60*60*1000);
-    filtered = filtered.filter(r => new Date(r.timestamp) >= weekAgo);
-    document.getElementById('histSubtitle').textContent = 'Últimos 7 días';
-  } else {
-    document.getElementById('histSubtitle').textContent = `Total: ${filtered.length} servicios`;
-  }
-
-  const list = document.getElementById('historialList');
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">📋</div>
-      <div class="empty-text">Sin registros en este período</div>
-    </div>`;
-    return;
-  }
-
-  list.innerHTML = filtered.map(r => {
-    const d = new Date(r.timestamp);
-    const timeStr = d.toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit'});
-    const dateStr = d.toLocaleDateString('es', {day:'2-digit',month:'short'});
-    return `
-    <div class="service-record">
-      <div class="record-icon">${r.serviceIcon}</div>
-      <div class="record-info">
-        <div class="record-service">${r.serviceName}</div>
-        <div class="record-meta">
-          ${r.placa ? `🚗 ${r.placa} · ` : ''}${r.employee.split(' ')[0]} · ${dateStr} ${timeStr}
-        </div>
-        ${currentRole==='admin' ? `<div style="margin-top:4px"><span class="tag cyan">Pago: ${curr}${r.paid.toFixed(2)}</span> <span class="tag green">Vuelto: ${curr}${r.change.toFixed(2)}</span></div>` : ''}
-      </div>
-      <div class="record-amount">${curr}${r.price.toFixed(2)}</div>
-    </div>`;
-  }).join('');
-}
-
-// ===== DASHBOARD =====
-function renderDashboard() {
-  const records = getRecords();
-  const curr = getCurrencySymbol();
-  const now = new Date();
-
-  const today = records.filter(r => new Date(r.timestamp).toDateString() === now.toDateString());
-  const weekAgo = new Date(now - 7*24*60*60*1000);
-  const week = records.filter(r => new Date(r.timestamp) >= weekAgo);
-
-  const totalHoy = today.reduce((s,r) => s+r.price, 0);
-  const totalSemana = week.reduce((s,r) => s+r.price, 0);
-
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card cyan">
-      <div class="stat-value" style="color:var(--accent)">${curr}${totalHoy.toFixed(0)}</div>
-      <div class="stat-label">Ingresos Hoy</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-value" style="color:var(--green)">${today.length}</div>
-      <div class="stat-label">Servicios Hoy</div>
-    </div>
-    <div class="stat-card purple">
-      <div class="stat-value" style="color:#a78bfa">${curr}${totalSemana.toFixed(0)}</div>
-      <div class="stat-label">Esta Semana</div>
-    </div>
-    <div class="stat-card yellow">
-      <div class="stat-value" style="color:var(--yellow)">${records.length}</div>
-      <div class="stat-label">Total Servicios</div>
-    </div>
-  `;
-
-  const services = getServices();
-  const svcTotals = services.map(s => ({
-    ...s,
-    count: records.filter(r => r.serviceId === s.id).length,
-    revenue: records.filter(r => r.serviceId === s.id).reduce((a,r) => a+r.price, 0),
-  })).filter(s => s.count > 0).sort((a,b) => b.revenue - a.revenue);
-
-  const maxRev = svcTotals[0]?.revenue || 1;
-
-  document.getElementById('chartBars').innerHTML = svcTotals.length ? svcTotals.map(s => `
-    <div class="chart-bar-row">
-      <div class="bar-label">${s.icon} ${s.name.split(' ').slice(0,2).join(' ')}</div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${(s.revenue/maxRev*100).toFixed(0)}%;background:${s.color}"></div>
-      </div>
-      <div class="bar-val">${s.count}</div>
-    </div>
-  `).join('') : '<div style="color:var(--muted);font-size:13px">Sin datos aún</div>';
-
-  const users = getUsers();
-  const empData = users.filter(u => u.role==='employee').map(u => ({
-    ...u,
-    count: records.filter(r => r.employeeId === u.id || r.employee === u.name).length,
-    revenue: records.filter(r => r.employeeId === u.id || r.employee === u.name).reduce((a,r) => a+r.price, 0),
-  }));
-
-  document.getElementById('employeePerf').innerHTML = empData.length ? empData.map(u => `
-    <div class="employee-row">
-      <div class="emp-avatar" style="background:${u.color}22;color:${u.color}">${u.name[0]}</div>
-      <div class="emp-info">
-        <div class="emp-name">${u.name}</div>
-        <div class="emp-role">${u.count} servicios</div>
-      </div>
-      <div class="emp-sales">${curr}${u.revenue.toFixed(0)}</div>
-    </div>
-  `).join('') : '<div style="color:var(--muted);font-size:13px">Sin datos aún</div>';
-}
-
-// ===== CONFIG =====
-function renderConfig() {
-  renderServiceConfig();
-  renderUsersConfig();
-  activateCurrencyBtn();
-}
-
-function renderServiceConfig() {
-  const services = getServices();
-  const curr = getCurrencySymbol();
-  document.getElementById('serviceConfigList').innerHTML = services.map(s => `
-    <div class="employee-row">
-      <div style="font-size:24px;width:36px">${s.icon}</div>
-      <div class="emp-info">
-        <div class="emp-name">${s.name}</div>
-        <div class="emp-role" style="color:${s.color}">${curr}${s.price.toFixed(2)}</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button onclick="editService(${s.id})" style="background:none;border:1px solid var(--border);color:var(--muted);padding:5px 8px;border-radius:8px;cursor:pointer;font-size:13px">✏️</button>
-        <button onclick="deleteService(${s.id})" style="background:none;border:1px solid rgba(255,23,68,0.3);color:var(--red);padding:5px 8px;border-radius:8px;cursor:pointer;font-size:13px">🗑</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderUsersConfig() {
-  const users = getUsers();
-  document.getElementById('usersConfigList').innerHTML = users.map(u => `
-    <div class="employee-row">
-      <div class="emp-avatar" style="background:${u.color}22;color:${u.color}">${u.name[0]}</div>
-      <div class="emp-info">
-        <div class="emp-name">${u.name}</div>
-        <div class="emp-role">${u.role === 'admin' ? '🔐 Admin' : '👷 Operador'} · PIN: ${u.pin}</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button onclick="editUserPin(${u.id})" style="background:none;border:1px solid var(--yellow);color:var(--yellow);padding:5px 8px;border-radius:8px;cursor:pointer;font-size:13px">PIN</button>
-        ${u.id !== 100 && u.name !== 'Admin' ? `<button onclick="deleteUser(${u.id})" style="background:none;border:1px solid rgba(255,23,68,0.3);color:var(--red);padding:5px 8px;border-radius:8px;cursor:pointer;font-size:13px">🗑</button>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-// ===== MODAL =====
-function openModal(title, bodyHTML) {
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalBody').innerHTML = bodyHTML;
-  document.getElementById('modal').classList.add('open');
-}
-
-function closeModal(e) {
-  if (e.target === document.getElementById('modal')) {
-    document.getElementById('modal').classList.remove('open');
-  }
-}
-
-// --- LOGICA PIN ADMIN ---
-function openChangeMyAdminPinModal() {
-  openModal('Cambiar mi PIN Admin', `
-    <div class="form-group">
-      <label class="form-label">PIN Actual</label>
-      <input class="form-input" id="myOldPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••">
-    </div>
-    <div class="divider"></div>
-    <div class="form-group">
-      <label class="form-label">Nuevo PIN</label>
-      <input class="form-input" id="myNewPin" type="password" maxlength="6" inputmode="numeric" placeholder="Máx 6 dígitos">
-    </div>
-    <button class="btn-primary" onclick="saveMyAdminPin()">ACTUALIZAR MI PIN</button>
-  `);
-}
-
-function saveMyAdminPin() {
-  const oldP = document.getElementById('myOldPin').value;
-  const newP = document.getElementById('myNewPin').value;
-  const users = getUsers();
-  const idx = users.findIndex(u => u.id === currentUser.id);
-
-  if (users[idx].pin !== oldP) return alert('El PIN actual es incorrecto');
-  if (newP.length < 4) return alert('El nuevo PIN debe tener al menos 4 dígitos');
-
-  users[idx].pin = newP;
-  setData('cw_users', users);
-  document.getElementById('modal').classList.remove('open');
-  alert('Tu PIN de administrador ha sido cambiado.');
-  renderUsersConfig();
-}
-
-// --- LOGICA PIN OPERADORES ---
-function editUserPin(id) {
-  const users = getUsers();
-  const u = users.find(usr => usr.id === id);
-  openModal(`Editar PIN: ${u.name}`, `
-    <div class="form-group">
-      <label class="form-label">Nuevo PIN para el usuario</label>
-      <input class="form-input" id="editUserPinVal" type="password" maxlength="6" inputmode="numeric" placeholder="••••">
-    </div>
-    <button class="btn-primary" onclick="saveUserPin(${id})">CAMBIAR PIN</button>
-  `);
-}
-
-function saveUserPin(id) {
-  const newP = document.getElementById('editUserPinVal').value;
-  if (newP.length < 4) return alert('El PIN debe tener al menos 4 dígitos');
-  const users = getUsers();
-  const idx = users.findIndex(u => u.id === id);
-  users[idx].pin = newP;
-  setData('cw_users', users);
-  document.getElementById('modal').classList.remove('open');
-  alert('PIN de usuario actualizado correctamente.');
-  renderUsersConfig();
-}
-
-function openAddService() {
-  openModal('Nuevo Servicio', `
-    <div class="form-group">
-      <label class="form-label">Nombre</label>
-      <input class="form-input" id="m-svcName" placeholder="Ej: Lavado VIP">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Ícono (emoji)</label>
-      <input class="form-input" id="m-svcIcon" placeholder="🚗" maxlength="2">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Precio (${getCurrencySymbol()})</label>
-      <input class="form-input" id="m-svcPrice" type="number" placeholder="100" inputmode="decimal">
-    </div>
-    <button class="btn-primary" onclick="saveNewService()">GUARDAR SERVICIO</button>
-  `);
-}
-
-function saveNewService() {
-  const name = document.getElementById('m-svcName').value.trim();
-  const icon = document.getElementById('m-svcIcon').value.trim() || '🚗';
-  const price = parseFloat(document.getElementById('m-svcPrice').value);
-  if (!name || !price) { alert('Completa nombre y precio'); return; }
-  const services = getServices();
-  const colors = ['#00e5ff','#7c3aed','#00e676','#ffea00','#ff6b35','#ff1744'];
-  services.push({ id: Date.now(), name, icon, price, color: colors[services.length % colors.length] });
-  setData('cw_services', services);
-  document.getElementById('modal').classList.remove('open');
-  renderServiceGrid();
-  renderServiceConfig();
-}
-
-function editService(id) {
-  const services = getServices();
-  const s = services.find(sv => sv.id === id);
-  if (!s) return;
-  const curr = getCurrencySymbol();
-  openModal('Editar Servicio', `
-    <div class="form-group">
-      <label class="form-label">Nombre</label>
-      <input class="form-input" id="m-editName" value="${s.name}">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Ícono</label>
-      <input class="form-input" id="m-editIcon" value="${s.icon}" maxlength="2">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Precio (${curr})</label>
-      <input class="form-input" id="m-editPrice" type="number" value="${s.price}" inputmode="decimal">
-    </div>
-    <button class="btn-primary" onclick="saveEditService(${id})">ACTUALIZAR</button>
-  `);
-}
-
-function saveEditService(id) {
-  const services = getServices();
-  const idx = services.findIndex(s => s.id === id);
-  if (idx < 0) return;
-  services[idx].name = document.getElementById('m-editName').value.trim() || services[idx].name;
-  services[idx].icon = document.getElementById('m-editIcon').value.trim() || services[idx].icon;
-  services[idx].price = parseFloat(document.getElementById('m-editPrice').value) || services[idx].price;
-  setData('cw_services', services);
-  document.getElementById('modal').classList.remove('open');
-  renderServiceGrid();
-  renderServiceConfig();
-}
-
-function deleteService(id) {
-  if (!confirm('¿Eliminar este servicio?')) return;
-  const services = getServices().filter(s => s.id !== id);
-  setData('cw_services', services);
-  renderServiceGrid();
-  renderServiceConfig();
-}
-
-function openAddUser() {
-  openModal('Nuevo Operador', `
-    <div class="form-group">
-      <label class="form-label">Nombre completo</label>
-      <input class="form-input" id="m-uName" placeholder="Ej: Juan Pérez">
-    </div>
-    <div class="form-group">
-      <label class="form-label">PIN (4-6 dígitos)</label>
-      <input class="form-input" id="m-uPin" type="password" inputmode="numeric" placeholder="••••" maxlength="6">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Rol</label>
-      <select class="form-input" id="m-uRole">
-        <option value="employee">👷 Operador</option>
-        <option value="admin">🔐 Admin</option>
-      </select>
-    </div>
-    <button class="btn-primary" onclick="saveNewUser()">CREAR USUARIO</button>
-  `);
-}
-
-function saveNewUser() {
-  const name = document.getElementById('m-uName').value.trim();
-  const pin = document.getElementById('m-uPin').value.trim();
-  const role = document.getElementById('m-uRole').value;
-  if (!name || pin.length < 4) { alert('Nombre y PIN de mínimo 4 dígitos'); return; }
-  const users = getUsers();
-  const colors = ['#00e5ff','#00e676','#ff6b35','#ffea00','#ff1744','#a78bfa'];
-  users.push({ id: Date.now(), name, pin, role, color: colors[users.length % colors.length] });
-  setData('cw_users', users);
-  document.getElementById('modal').classList.remove('open');
-  renderUsersConfig();
-}
-
-function deleteUser(id) {
-  if (!confirm('¿Eliminar este usuario?')) return;
-  setData('cw_users', getUsers().filter(u => u.id !== id));
-  renderUsersConfig();
-}
-
-function clearAllData() {
-  if (!confirm('¿Borrar TODOS los registros de cobros? Los servicios y usuarios se conservan.')) return;
-  setData('cw_records', []);
-  renderHistory();
-  renderDashboard();
-  alert('Registros eliminados.');
-}
-
-// ===== NAVIGATION =====
-function navTo(section, el) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('sec-' + section).classList.add('active');
-  el.classList.add('active');
-
-  if (section === 'historial') renderHistory();
-  if (section === 'resumen') renderDashboard();
-  if (section === 'config') renderConfig();
-}
-
-setRole('employee');
 </script>
 </body>
 </html>
+
