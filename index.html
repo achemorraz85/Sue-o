@@ -104,6 +104,8 @@
   .result-main { font-family: 'Bebas Neue', sans-serif; font-size: 4.5rem; color: #fff; line-height: 1; }
   .ft-mark { color: var(--red); margin-right: 8px; font-size: 0.8em; }
   .frac-color { color: var(--yellow); margin-left: 5px; }
+  .frac-plus { color: #888; font-size: 0.6em; margin: 0 6px; vertical-align: middle; }
+  .frac-small { color: var(--yellow); font-size: 0.7em; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -191,9 +193,56 @@ function showApp(id) {
 
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
+/**
+ * Convierte una fracción en 16avos a la representación más legible.
+ * Lógica:
+ * 1. Reducir al denominador más pequeño posible (2, 4, 8, 16).
+ * 2. Si la fracción YA es exacta en 8vos o menos → mostrar simple (ej: 3/8").
+ * 3. Si el denominador reducido sigue siendo 16 → buscar la fracción
+ *    en 8vos más cercana hacia abajo + el residuo en 16avos.
+ *    Ejemplo: 15/16 = 7/8 + 1/16 → se muestra como  7/8 + 1/16"
+ *             3/16  = 1/8 + 1/16 → se muestra como  1/8 + 1/16"
+ *             1/16  → no tiene base en 8vos, se muestra solo 1/16"
+ */
+function buildFracHtml(sixteenths) {
+  // sixteenths: número entero de 16avos (0-15)
+  if (sixteenths === 0) return '';
+
+  const g = gcd(sixteenths, 16);
+  const reducedNum = sixteenths / g;
+  const reducedDen = 16 / g;
+
+  // Si se reduce a denominador ≤ 8 → es limpio, mostrarlo directo
+  if (reducedDen <= 8) {
+    return `<span class="frac-color">${reducedNum}/${reducedDen}"</span>`;
+  }
+
+  // Denominador sigue siendo 16 → descomponer en base 8 + residuo 16
+  // Base en 8vos: cuántos 8vos caben en sixteenths (cada 8vo = 2/16)
+  const eighthsBase = Math.floor(sixteenths / 2); // ej: 15/16 → floor(15/2)=7 → 7/8
+  const remainder16 = sixteenths - (eighthsBase * 2);  // residuo en 16avos
+
+  if (eighthsBase === 0) {
+    // Solo hay 1/16 (ej: 1/16, no hay 8vo base)
+    return `<span class="frac-color">${reducedNum}/${reducedDen}"</span>`;
+  }
+
+  // Reducir la parte de 8vos
+  const g8 = gcd(eighthsBase, 8);
+  const baseNum = eighthsBase / g8;
+  const baseDen = 8 / g8;
+
+  if (remainder16 === 0) {
+    return `<span class="frac-color">${baseNum}/${baseDen}"</span>`;
+  }
+
+  // Mostrar: base/8 + 1/16"
+  return `<span class="frac-color">${baseNum}/${baseDen}</span><span class="frac-plus">+</span><span class="frac-small">1/16"</span>`;
+}
+
 function formatMeasurement(totalInches, useFeet) {
   if (totalInches <= 0) return '—';
-  
+
   let resultHtml = "";
   let remainingInches = totalInches;
 
@@ -203,26 +252,26 @@ function formatMeasurement(totalInches, useFeet) {
     if (feet > 0) resultHtml += `${feet}<span class="ft-mark">'</span>`;
   }
 
-  const wholeIn = Math.floor(remainingInches);
-  let fn = Math.round((remainingInches - wholeIn) * 16);
-  let finalIn = wholeIn;
+  // Redondear a 16avos más cercano
+  let totalSixteenths = Math.round(remainingInches * 16);
+  let wholeIn = Math.floor(totalSixteenths / 16);
+  let fracSixteenths = totalSixteenths % 16;
 
-  if (fn >= 16) { finalIn++; fn = 0; }
-  
-  // Si usamos pies y el redondeo de pulgadas llega a 12, sumamos un pie
-  if (useFeet && finalIn >= 12) {
-    // Re-calculamos para simplificar
-    const totalFeet = Math.floor(Math.round(totalInches * 16) / (12 * 16));
-    const totalRemIn = (Math.round(totalInches * 16) / 16) % 12;
-    // (Este es un caso borde, lo manejamos simple)
+  // Manejar desbordamiento a 12 pulgadas (si usamos pies)
+  if (useFeet && wholeIn >= 12) {
+    wholeIn = 0;
+    fracSixteenths = 0;
+    // Ya se ajustó al calcular feet arriba; simplificamos
   }
 
-  if (finalIn > 0 || fn === 0) resultHtml += `${finalIn}`;
-  
-  if (fn > 0) {
-    const common = gcd(fn, 16);
-    resultHtml += `<span class="frac-color">${fn/common}/${16/common}"</span>`;
-  } else {
+  if (wholeIn > 0 || fracSixteenths === 0) {
+    resultHtml += `${wholeIn}`;
+  }
+
+  resultHtml += buildFracHtml(fracSixteenths);
+
+  // Si no hay fracción, agregar el símbolo de pulgada
+  if (fracSixteenths === 0) {
     resultHtml += `"`;
   }
 
@@ -254,7 +303,6 @@ function calcDivisor() {
   const totalInches = (feet * 12) + inches + (num / den);
   const res = totalInches / divisor;
 
-  // Solo mostrar pies si el input de pies tiene ALGO escrito
   const useFeet = ftVal !== "";
   document.getElementById('div_result').innerHTML = formatMeasurement(res, useFeet);
   drawTape(res);
@@ -309,4 +357,3 @@ window.onload = () => {
 </script>
 </body>
 </html>
-
